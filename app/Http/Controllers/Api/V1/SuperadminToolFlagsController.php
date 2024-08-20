@@ -34,12 +34,34 @@ class SuperadminToolFlagsController extends Controller
                 ->where('branchid', $request->branchid)
                 ->where('terminalno', $request->terminalno)
                 ->exists();
- 
+
         if($inDb) {
-            return response("already exists", 406);
+            $date = DB::table('superadmin_tool_flags')
+                ->select('id','vatchange_date')
+                ->where('clientgroupid', $request->clientgroupid)
+                ->where('networkid', $request->networkid)
+                ->where('branchid', $request->branchid)
+                ->where('terminalno', $request->terminalno)
+                ->first();
+
+            if(DATE($date->vatchange_date) > DATE($request->vatchange_date)){
+                $data = Array(
+                    "status" => "Date Invalid"
+                );
+                return response(json_encode($data), 200);
+            } else {
+                $flag = $this->updateDate($request->vatchange_date, $date->id);  
+                $flag1 = json_decode($flag, true);
+                if($flag1['status'] == 'Successful') {
+                    return response("Successful", 200);
+                } else {
+                    return response("Failed", 406);
+                }
+            }
         } else {
             $flag = superadmin_tool_flags::create($request->validated());  
             return response("Successful", 200);
+
         }
                         
     }
@@ -98,7 +120,7 @@ class SuperadminToolFlagsController extends Controller
         if($request->isdone) {
             $updateValue = DB::table('superadmin_tool_flags')
                 ->where('id', $request->requestid)
-                ->update(['value' => false]);
+                ->update(['value' => false, 'updated_at' => now()]);
 
             if($updateValue) {
                 return response("Successful",200);
@@ -106,7 +128,28 @@ class SuperadminToolFlagsController extends Controller
                 return response("Not Found",400);
             }
         } else {
-            return response("Failed",400);
+            return response("Failed",422);
+        }
+    }
+
+    public function updateDate($date,$id)
+    {
+
+        $updateValue = DB::table('superadmin_tool_flags')
+                        ->where('id', $id)
+                        ->where('type', 1)
+                        ->update(['value' => '1', 'vatchange_date' => $date, 'updated_at' => now()]);
+
+        if($updateValue) {
+            $data = Array(
+                "status" => "Successful"
+            );
+            return json_encode($data);
+        } else {
+            $data = Array(
+                "status" => "Failed"
+            );
+            return json_encode($data);
         }
     }
 
