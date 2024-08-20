@@ -7,6 +7,7 @@ use App\Models\superadmin_tool_flags;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storesuperadmin_tool_flagsRequest;
 use App\Http\Requests\Updatesuperadmin_tool_flagsRequest;
+use App\Http\Requests\Getsuperadmin_tool_flagsRequest;
 use Illuminate\Http\Request;
 use DB;
 
@@ -46,9 +47,10 @@ class SuperadminToolFlagsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(superadmin_tool_flags $superadmin_tool_flags, Request $request)
+    public function show(superadmin_tool_flags $superadmin_tool_flags, Getsuperadmin_tool_flagsRequest $request)
     {
         // return superadmin_tool_flagsResource::make($superadmin_tool_flags);
+
         $inDb = DB::table('superadmin_tool_flags')
                 ->where('clientgroupid', $request->clientgroupid)
                 ->where('networkid', $request->networkid)
@@ -75,6 +77,13 @@ class SuperadminToolFlagsController extends Controller
             );
 
             return json_encode($response);  
+        } else {
+            $response = Array(
+                "ID"    => 0,
+                "ChangeVatDate" =>  '0000-00-00'
+            );
+
+            return json_encode($response);  
         }
     }
 
@@ -91,7 +100,7 @@ class SuperadminToolFlagsController extends Controller
                 ->where('id', $request->requestid)
                 ->update(['value' => false]);
 
-            if($updateValue ) {
+            if($updateValue) {
                 return response("Successful",200);
             } else {
                 return response("Not Found",400);
@@ -99,10 +108,6 @@ class SuperadminToolFlagsController extends Controller
         } else {
             return response("Failed",400);
         }
-
-
-
-        
     }
 
     /**
