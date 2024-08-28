@@ -26,7 +26,7 @@ class Storesuperadmin_tool_flagsRequest extends FormRequest
             'networkid'     => 'required|integer',
             'branchid'      => 'required|integer',
             'terminalno'    => 'required|integer',
-            'vatchange_date' => 'required|date'
+            'meta_data' => 'required|array:vat_status,date'
         ];
     }
 }

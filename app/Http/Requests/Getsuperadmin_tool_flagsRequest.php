@@ -26,7 +26,8 @@ class Getsuperadmin_tool_flagsRequest extends FormRequest
             'networkid'         => 'required|integer',
             'branchid'          => 'required|integer',
             'terminalno'        => 'required|integer',
-            'type'              => 'required|integer|between:1,3'
+            'type'              => 'required|integer|between:1,3',
+            'newvatstatus'      => 'required|integer|between:1,2'
         ];
     }
 }

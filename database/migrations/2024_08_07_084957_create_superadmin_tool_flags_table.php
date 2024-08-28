@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('terminalno')->default('0');
             $table->enum('type',['1','2','3']);
             $table->boolean('value')->default(true);
-            $table->date('vatchange_date')->default('2000-01-01');
+            $table->json('meta_data');
             $table->timestamps();
         });
     }

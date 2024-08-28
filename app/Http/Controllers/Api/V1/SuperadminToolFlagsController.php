@@ -37,20 +37,20 @@ class SuperadminToolFlagsController extends Controller
 
         if($inDb) {
             $date = DB::table('superadmin_tool_flags')
-                ->select('id','vatchange_date')
+                ->select('id','meta_data->vat_status as vat_status', 'meta_data->date as effectivity_date')
                 ->where('clientgroupid', $request->clientgroupid)
                 ->where('networkid', $request->networkid)
                 ->where('branchid', $request->branchid)
                 ->where('terminalno', $request->terminalno)
                 ->first();
 
-            if(DATE($date->vatchange_date) > DATE($request->vatchange_date)){
+            if(DATE($date->effectivity_date) > DATE($request->meta_data['date'])){
                 $data = Array(
                     "status" => "Date Invalid"
                 );
                 return response(json_encode($data), 200);
             } else {
-                $flag = $this->updateDate($request->vatchange_date, $date->id);  
+                $flag = $this->updateDate($request->meta_data['date'], $request->meta_data['vat_status'], $date->id);  
                 $flag1 = json_decode($flag, true);
                 if($flag1['status'] == 'Successful') {
                     return response("Successful", 200);
@@ -79,12 +79,13 @@ class SuperadminToolFlagsController extends Controller
                 ->where('branchid', $request->branchid)
                 ->where('terminalno', $request->terminalno)
                 ->where('type', $request->type)
+                ->where('meta_data->vat_status', $request->newvatstatus)
                 ->where('value', true)
                 ->exists();
 
         if($inDb) {
             $data = DB::table('superadmin_tool_flags')
-                ->select('id', 'vatchange_date')
+                ->select('id', 'meta_data->vat_status as vat_status','meta_data->date as date')
                 ->where('clientgroupid', $request->clientgroupid)
                 ->where('networkid', $request->networkid)
                 ->where('branchid', $request->branchid)
@@ -94,15 +95,15 @@ class SuperadminToolFlagsController extends Controller
                 ->first();
 
             $response = Array(
-                "ID"    => $data->id,
-                "ChangeVatDate" =>  $data->vatchange_date
+                "id"    => $data->id,
+                "effectivityDate" =>  $data->date
             );
 
             return json_encode($response);  
         } else {
             $response = Array(
-                "ID"    => 0,
-                "ChangeVatDate" =>  '0000-00-00'
+                "id"    => 0,
+                "effectivityDate" =>  '0000-00-00'
             );
 
             return json_encode($response);  
@@ -132,13 +133,16 @@ class SuperadminToolFlagsController extends Controller
         }
     }
 
-    public function updateDate($date,$id)
+    public function updateDate($date, $vatStatus, $id)
     {
 
         $updateValue = DB::table('superadmin_tool_flags')
                         ->where('id', $id)
                         ->where('type', 1)
-                        ->update(['value' => '1', 'vatchange_date' => $date, 'updated_at' => now()]);
+                        ->update(['value' => '1', 
+                            'meta_data->date' => $date,
+                            'meta_data->vat_status' => $vatStatus,
+                            'updated_at' => now()]);
 
         if($updateValue) {
             $data = Array(
