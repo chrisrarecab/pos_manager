@@ -18,13 +18,21 @@
         .header-img {
             width:100%;
         }
+        .navi {
+            border-top: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+            height: 40px;
+        }
+        footer{
+            height: 200px;
+        }
     </style>
 </head>
 <body>
     <div class="img-div">
         <img src="{{URL::asset('/images/img.jpg')}}"class=" header-img" alt="Responsive image">
     </div>
-    <nav class="py-2 bg-light border-bottom">
+    <nav class="navi">
        
         <div class="container d-flex flex-wrap">
             <ul class="nav me-auto">
@@ -44,13 +52,12 @@
                 <svg class="bi me-2" width="40" height="32">
                     <use xlink:href="#bootstrap" /></svg>
                     <div></div>
-                <span class="fs-4 d-block p-2 version"> CIRMS POS<p class="fs-6 text-center"> v.0.0.0.0</p> </span>
+                <!-- <span class="fs-4 d-block p-2 version"> CIRMS POS<p class="fs-6 text-center"> v.0.0.0.0</p> </span> -->
                 
             </a>
             <form class="col-12 col-lg-auto mb-3 mb-lg-0">
                 <ul class="nav">
-                    <li class="nav-item"><a href="#" class="nav-link link-dark text-decoration-underline px-2">Hi! Erika
-                            Velasco</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link link-dark text-decoration-underline px-2">User: Juan Dela Cruz</a></li>
                 </ul>
             </form>
         </div>

@@ -6,7 +6,10 @@
 
 import './bootstrap';
 import { createApp } from 'vue';
+import BootstrapVue3 from 'bootstrap-vue-3';
 
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
  * registering components with the application instance so they are ready
@@ -14,12 +17,13 @@ import { createApp } from 'vue';
  */
 
 const app = createApp({});
-
+app.use(BootstrapVue3);
 
 import ExampleComponent from './components/ExampleComponent.vue';
+import TerminalListComponent from './components/TerminalListComponent.vue';
 
 app.component('example-component', ExampleComponent);
-
+app.component('terminal-list-component', TerminalListComponent);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
