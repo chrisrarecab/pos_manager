@@ -30,16 +30,112 @@
             <h5 class="no-data-text">NO DATA AVAILABLE</h5>
         </div>
         <b-table hover
-            :outlined="outlined"
-        
+            :bordered="bordered"
             :items="paginatedItems"
             :fields="fields"
             class="tblStyle">
+            <template #cell(version)="data">
+                <div class="version-badge">
+                    <span v-html="data.item.version"></span>&nbsp;
+                    <div class="version-image-container">
+                        <div v-if="data.item.isVersionOutdated.isOutdated == true" class="tooltip-container" @mouseenter="showTooltip(data.item.id)" @mouseleave="hideTooltip">
+                        <div class="version-container">
+                            <img :src="updateImg" height="15" width="15" alt="">
+                            <!-- <b-badge href="#" variant="secondary">{{ data.item.isVersionOutdated.difference }}</b-badge> -->
+                        </div>
+                        <div class="tooltip" v-if="hoveredSettingId === data.item.id">
+                            <div class="tooltip-items">
+                            <p><strong>Available Update: &nbsp;</strong> {{ data.item.latest_update }}</p>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #cell(setting)="data">
+                <div class="tooltip-container" @mouseenter="showTooltip(data.item.id)" @mouseleave="hideTooltip">
+                    <div class="status">
+                        <span v-if="data.item.setting === 'Updated'">
+                            <b-badge variant="success"><span v-html="data.item.setting"></span></b-badge>
+                        </span>
+                        <span v-else-if="data.item.setting === 'Outdated'">
+                            <b-badge variant="danger"><span v-html="data.item.setting"></span></b-badge>
+                        </span>
+                        <span v-else>
+                                <span>-</span>
+                        </span>
+                    </div>
+                    <div class="tooltip" v-if="hoveredSettingId === data.item.id">
+                        <div class="tooltip-items">
+                            <p><strong>Last Update:  &nbsp;</strong> {{ data.item.settings_date }}</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #cell(maintenance)="data">
+                <div class="tooltip-container" @mouseenter="showTooltip(data.item.id)" @mouseleave="hideTooltip">
+                    <div class="status-maintenance">
+                        <span v-if="data.item.maintenance === 'Updated'">
+                            <b-badge variant="success" class="badge-content"> <img :src="checkImg"  height="10" width="10" alt="">Active</b-badge>
+                        </span>
+                        <span v-else-if="data.item.maintenance === 'Expired'">
+                            <b-badge variant="danger" class="badge-content"><img :src="crossImg"  height="10" width="10" alt=""> Expired</b-badge>
+                        </span>
+                        <span v-else>
+                                <span>-</span>
+                        </span>
+                    </div>
+                    <div class="tooltip" v-if="hoveredSettingId === data.item.id">
+                        <div class="tooltip-items">
+                            <p> <strong>Expired On:  &nbsp;</strong> {{ data.item.expirationDate }}</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
             <template #cell(hardware)="data">
-                   <span>-</span>
+                <div class="tooltip-container" @mouseenter="showTooltip(data.item.id)" @mouseleave="hideTooltip">
+                    <span :data-hardware-id="data.item.id" v-html="data.item.hardware"></span>
+                    <div class="tooltip" v-if="hoveredSettingId === data.item.id">
+                        <div class="tooltip-items">
+                            <p>
+                            <strong>CPU Usage:  &nbsp;</strong>
+                            <span :style="{
+                                display: 'inline-block',
+                                width: '13px',
+                                height: '13px',
+                                backgroundColor: getCpuUsageColor(data.item.cpuUsage),
+                                borderRadius: '20%',
+                                margin: '0 0 0 1px'
+                                }"></span>&nbsp; {{ data.item.cpuUsage }}%
+                            </p>
+                            <p>
+                                <strong> Ram Usage: &nbsp;</strong>
+                                <span :style="{
+                                display: 'inline-block',
+                                width: '13px',
+                                height: '13px',
+                                backgroundColor: getRamUsageColor(data.item.ramUsage),
+                                borderRadius: '20%',
+                                margin:'0'
+                                }"></span>&nbsp;{{ data.item.ramUsage }}%
+                            </p>
+                            <p>
+                                <strong> Disk Usage: &nbsp;</strong>
+                                <span :style="{
+                                display: 'inline-block',
+                                width: '13px',
+                                height: '13px',
+                                backgroundColor: getDiskUsageColor(data.item.spaceUsage),
+                                borderRadius: '20%',
+                                margin: '0 0 0 1px'
+                                }"></span>&nbsp;{{  data.item.spaceUsage }}%
+                            </p>
+                            <p><strong> Last Update: &nbsp;</strong>{{ data.item.serverDate }}</p>
+                        </div>
+                    </div>
+                </div>
             </template>
         </b-table>
-
     </div>
     <div class="d-flex justify-content-center mt-5 align-items-center">
         <b-pagination
@@ -52,6 +148,13 @@
 </template>
   
 <script>
+    const headers = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
+        }
+    };
+
     function getApiBaseUrl() {
         const protocol = window.location.protocol;
         const host = window.location.hostname;
@@ -60,81 +163,37 @@
         return `${protocol}//${host}:${port}/api/v1`;
     }
     const apiUrl = getApiBaseUrl(); 
+    import serverImage from '../../images/server.svg'; 
+    import updateImg from '../../images/update.svg'; 
+    import check from '../../images/check.svg';  
+    import cross from '../../images/cross.svg';    
+
+    import '../../css/terminalList.css';
 
     export default {
         data() {
             return {
+                hoveredSettingId: null,
                 clients:[],
                 items: [],
                 selected: null,
-                outlined: true,
+                bordered: true,
                 loading: false,
                 currentPage: 1,  
                 itemsPerPage: 5,
-                fields: [
-                    {
-                        key: 'id', 
-                        label: 'ID',
-                        thStyle: { width: '5%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },   
-                    {
-                        key: 'branch', 
-                        label: 'Branch',
-                        thStyle: { width: '15%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-left td-style'
-                    },      
-                    {
-                        key: 'terminal', 
-                        label: 'T#',
-                        thStyle: { width: '5%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },      
-                    {
-                        key: 'version', 
-                        label: 'Version',
-                        thStyle: { width: '8%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },      
-                    {
-                        key: 'latest_update', 
-                        label: 'Latest Update',
-                        thStyle: { width: '8%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },   
-                    {
-                        key: 'setting', 
-                        label: 'Setting',
-                        thStyle: { width: '8%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },      
-                    {
-                        key: 'backup', 
-                        label: 'Backup',
-                        thStyle: { width: '8%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },      
-                    {
-                        key: 'maintenance', 
-                        label: 'License/Maintenance',
-                        thStyle: { width: '9%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },       
-                    {
-                        key: 'hardware', 
-                        label: 'Hardware',
-                        thStyle: { width: '5%' },
-                        thClass: 'th-style',
-                        tdClass: 'td-center td-style'
-                    },   
+                updateImg: updateImg,
+                checkImg: check,
+                crossImg: cross,
+                fields: [ 
+                    { key: 'id', label: 'ID', thStyle: { width: '5%' }, thClass: 'th-style', tdClass: 'td-center td-style' },   
+                    { key: 'branch', label: 'Branch', thStyle: { width: '15%' }, thClass: 'th-style ', tdClass: ' td-style' },      
+                    { key: 'terminal', label: 'Terminal', thStyle: { width: '5%' }, thClass: 'th-style', tdClass: 'td-center td-style' },      
+                    { key: 'version',  label: 'Version', thStyle: { width: '8%' }, thClass: 'th-style', tdClass: 'td-center td-style' },      
+                    // { key: 'latest_update', label: 'Latest Update', thStyle: { width: '8%' }, thClass: 'th-style',  tdClass: 'td-center td-style' },   
+                    { key: 'setting', label: 'Setting', thStyle: { width: '8%' }, thClass: 'th-style', tdClass: 'td-center td-style' },      
+                    { key: 'backup', label: 'Backup', thStyle: { width: '8%' }, thClass: 'th-style', tdClass: 'td-center td-style' },      
+                    { key: 'maintenance', label: 'License/Maintenance', thStyle: { width: '8%' }, thClass: 'th-style', tdClass: 'td-center td-style'},       
+                    { key: 'hardware', label: 'Hardware', thStyle: { width: '5%' }, thClass: 'th-style', tdClass: 'td-center td-style'},   
                 ]
             }
         },
@@ -159,21 +218,37 @@
             }
         },
         methods: {
-            formatDate(dateString) {
-                const dateOnly = dateString.split(' ')[0]; 
-                const date = new Date(dateOnly); 
-                const options = {
-                    year: 'numeric',
-                    month: 'long', 
-                    day: 'numeric', 
-                };
+            compareVersions(id, v1, v2) {
+                const v1Set = v1.split('.').map(Number); // [4, 4, 42, 03]
+                const v2Set = v2.split('.').map(Number); // [4, 4, 38, 3]
+                
+                for (let i = 0; i < Math.max(v1Set.length, v2Set.length); i++) {
+                    const v1Part = v1Set[i] || 0;
+                    const v2Part = v2Set[i] || 0;
 
-                if(date == 'Invalid Date'){
-                    return '-';
+                    if (v1Part < v2Part) {
+                        return {
+                            id: id,
+                            isOutdated: true,
+                            // difference: v2Set[i] - v1Part,
+                            message: `${v2}`
+                        };
+                    } else if (v1Part > v2Part) {
+                        return {
+                            id: id,
+                            isOutdated: false,
+                            message: 'Updated'
+                        };
+                    }
                 }
-                return date.toLocaleDateString('en-US', options);
+                return {
+                    id: id,
+                    isOutdated: false,
+                    message: 'Updated'
+                };
             },
             fetchClient() {
+                //client network dropdown 
                 const terminalData = {
                     clientGroupId: this.detail,
                 };
@@ -205,132 +280,142 @@
                     clientNetworkId: clientNetworkId,
                 };
 
-                return axios.post(apiUrl + '/TerminalList/TerminalStatus', terminalData, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
-                    }
-                })
+                return axios.post(apiUrl + '/TerminalList/TerminalStatus', terminalData, headers)
                 .then((res) => { 
-                    this.items = res.data.map(entry => {
-                        const [
-                            idArray, branchArray, terminalArray, versionArray,
-                            updateArray, backupArray, maintenanceArray
-                        ] = entry;
 
-                        const id = idArray[0];
-                        const branch = branchArray[0];
-                        const terminal  = terminalArray[0];
-                        const version = versionArray[0];
-                        const latest_update = updateArray[0];
-                        const backup = backupArray[0];
-                        const maintenance = maintenanceArray[0];
-                        const backupFormatted = this.formatDate(backup);
-                        
-                        const setting = null;
-                        return { id, branch, terminal, version, latest_update, setting, backup: backupFormatted, maintenance };
+                    this.items = res.data.map(entry => {
+                        const id = entry.id;
+                        const branch = entry.branch;
+                        const terminal = entry.terminal;
+                        const backup = entry.backup;
+                        const maintenance = entry.maintenance;
+                        const expirationDate = entry.expire_at;
+                        const cpuUsage = parseFloat(entry.cpu_usage) || 0; 
+                        const ramUsage = parseFloat(entry.ram_usage) || 0; 
+                        const spaceUsage = parseFloat(entry.space_usage) || 0;
+                        const serverDate = entry.server_status_date;
+
+                        const version = entry.current_version || '-';
+                        const latest_update = entry.update_version || '-';
+
+                        const shouldDisplayImage = cpuUsage || ramUsage || spaceUsage;
+                        const imageWithTooltip = shouldDisplayImage 
+                            ? `<span data-id="${id}" class="tooltip-image">
+                                <img src="${serverImage}" height="20" width="20" alt=""></span>` 
+                            : '-';
+
+                        let isVersionOutdated = this.compareVersions(id, version, latest_update);
+  
+                        const hardware = imageWithTooltip;
+                               
+                        return { id, branch, terminal, version, isVersionOutdated, latest_update,
+                                backup, maintenance, expirationDate, hardware, cpuUsage, ramUsage, spaceUsage, serverDate};
                     });
-                    this.loading = false;
+   
+                    this.checkPosSettings(); 
+                    this.loading = false;   
                 })
                 .catch((error) => {
                     console.log(error);
                     this.loading = false;
                 });
+
             },
             checkPosSettings() {
                 const clientTerminalIds = this.items.map(item => item.id);
                 const clientterminalidApi = {
                     clientTerminalId: clientTerminalIds
                 };
+                const api1 = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalidApi, headers);
+                const api2 = axios.post('/api/v1/settings', clientterminalidApi, headers);
 
-                const api1Promise = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalidApi, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
-                    }
-                });
-
-                const api2Promise = axios.post('/api/v1/settings', clientterminalidApi, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
-                    }
-                });
-
-                Promise.all([api1Promise, api2Promise])
+                Promise.all([api1, api2])
                     .then(([res1, res2]) => {
                         const apiData = res1.data;
                         const posData = res2.data;
                         const state = [];
-
-                        // Compare data 
                         apiData.forEach(apiEntry => {
                             const matchedEntry = posData.find(posEntry => {
                                 return Number(apiEntry.clientterminalid) === posEntry.clientterminalid && 
                                     apiEntry.key.trim().toLowerCase() === posEntry.key.trim().toLowerCase();
                             });
-                            // check if id is existing in array to avoid duplication
-                            const entryExistsInstate = (clientterminalid) => {
-                                return state.some(diff => 
-                                    diff.clientterminalid === clientterminalid
-                                );
-                            };
 
+                            const settings_date = apiEntry.settings_date || matchedEntry?.settings_date || 'N/A';
                             if (matchedEntry) {
+                                this.loading = true;
                                 if (apiEntry.value !== matchedEntry.value) {
-                                    if (!entryExistsInstate(apiEntry.clientterminalid)) {
+                                    if (apiEntry.clientterminalid) {
                                         state.push({
                                             clientterminalid: apiEntry.clientterminalid,
                                             key: apiEntry.key,
                                             apiValue: apiEntry.value,
                                             posValue: matchedEntry.value,
-                                            status: 'Outdated'  
+                                            status: 'Outdated',  
+                                            settings_date
                                         });
                                     }
                                 }else{
                                     if (apiEntry.value === matchedEntry.value) {
-                                        if (!entryExistsInstate(apiEntry.clientterminalid)) {
-                                            state.push({
+                                        if (apiEntry.clientterminalid) {
+                                            state.push({    
                                                 clientterminalid: apiEntry.clientterminalid,
                                                 key: apiEntry.key,
                                                 apiValue: apiEntry.value,
                                                 posValue: matchedEntry.value,
-                                                status: 'Updated'  
+                                                status: 'Updated',
+                                                settings_date  
                                             });
                                         }
                                     }
                                 }
                             } else {
-                                if (!entryExistsInstate(apiEntry.clientterminalid)) {
+                                if (apiEntry.clientterminalid) {
                                     state.push({
                                         clientterminalid: apiEntry.clientterminalid,
                                         key: apiEntry.key,
                                         apiValue: apiEntry.value,
                                         posValue: null,
-                                        status: 'Outdated' 
+                                        status: 'Outdated',
+                                        settings_date
                                     });
                                 }
                             }
                         });
+                        
+                        const statusMap = new Map();
 
-                        // get all status then feed it to col setting
-                        const statusArr = state.map(diff => ({
+                        state.forEach(entry => {
+                            // change entry when there is another entry with the same id and the status = outdated 
+                            // but the id exist and the status = updated 
+                            const existingEntry = statusMap.get(entry.clientterminalid);
+                            if (!existingEntry || entry.status === 'Outdated') {
+                                statusMap.set(entry.clientterminalid, entry);
+                            }
+                        });
+
+                        const filteredState = Array.from(statusMap.values());
+                        const statusArr = filteredState.map(diff => ({
                             clientterminalid: diff.clientterminalid,
-                            status: diff.status  
+                            status: diff.status,
+                            settings_date: diff.settings_date 
                         }));
+                      
+                        // feed the results to this.items 
                         this.items.forEach(item => {
                             const statusEntry = statusArr.find(status => status.clientterminalid === item.id);
                             if (statusEntry) {
                                 item.setting = statusEntry.status;
+                                item.settings_date = statusEntry.settings_date;
                             } else {
-                                item.setting = 'Unknown';
+                                item.setting = '-';
                             }
                         });
-
+                        this.loading = false;
                     })
                     .catch((error) => {
                         console.error("Error fetching terminal data:", error);
                     });
+                    
             },
             onClientSelect() {
                 if (this.selected) {
@@ -338,83 +423,48 @@
                     if (selectedClient) {
                         const { clientGroupId, clientNetworkId } = selectedClient;
                         this.currentPage = 1;
-                        // this.fetchTerminals(clientGroupId, clientNetworkId); 
-                        this.fetchTerminals(clientGroupId, clientNetworkId).then(() => {
-                            this.checkPosSettings();  // Ensure this runs after terminals are fetched
-                        });
+                        this.fetchTerminals(clientGroupId, clientNetworkId)
                     }
-                    this.checkPosSettings();
+                }
+            },
+            showTooltip(id) { this.hoveredSettingId = id;  },
+            hideTooltip() { this.hoveredSettingId = null; },
+            getCpuUsageColor(usage) {
+                if(usage >= 90){
+                    return 'red'; 
+                }else if(usage >= 80 && usage <= 89.99 ){
+                    return 'yellow'; 
+                }else if(usage > 0 && usage < 80){
+                    return 'green'; 
+                }else{
+                    return 'black';
+                }
+            },
+            getRamUsageColor(usage) {
+                if(usage >= 80){
+                    return 'red'; 
+                }else if(usage >= 70 && usage <= 79.99){
+                    return 'yellow'; 
+                }else if(usage >= 0 && usage <= 69 ){
+                    return 'green';
+                }else{
+                    return 'black'; 
+                }
+            },
+            getDiskUsageColor(usage) {
+                if(usage >= 80){
+                    return 'red'; 
+                }else if(usage >= 50 && usage <= 79.99){
+                    return 'yellow'; 
+                }else if(usage >= 0 && usage <= 49 ){
+                    return 'green';
+                }else{
+                    return 'black'; 
                 }
             }
         },
         mounted() {
             this.fetchClient(); 
-        }
+        },
     }
 </script>
-
-<style>
-.overlay {
-    position: absolute;
-    background: rgb(255, 255, 255); /* Light overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.b-spinner {
-    width: 3rem;
-    height: 3rem;
-}
-.th-style   {
-    text-align: center;
-    background-color: #e7e7e7 !important;
-    border-bottom: none;
-}
-.tblStyle   {
-    height: 250px;
-}
-.td-style{
-    font-size: 0.9rem;
-}
-.td-center{
-    text-align: center;
-}
-.td-left{
-    text-align: left;
-}
-.dropdown{
-    border-radius:36px;
-    margin-bottom: 20px;
-}
-.option-style{
-    text-align: left;;
-    font-size: 0.8rem;
-    background-color: white; /* Default background color */
-    color: black; /* Default text color */
-}
-select .option-style:hover{
-    background-color: rgb(179, 178, 178) !important; 
-    color: black; 
-    cursor: pointer; 
-}
-
-.network-name{
-    font-size: 2.8rem;
-    font-weight:500;
-    margin-bottom: 0;
-}
-.form-select:focus{
-    border-color: #e7e7e7;
-    box-shadow: 0 0 0 0.25rem rgb(231 231 231);
-}
-.page-item.active .page-link {
-    border-color: #e7e7e7;
-    background-color: #e7e7e7;
-    color:#424242;
-    box-shadow: none;
-}
-.page-item .page-link{
-    color:#424242
-}
-</style>

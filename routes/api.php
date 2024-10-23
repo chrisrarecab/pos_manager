@@ -12,7 +12,6 @@ Route::prefix('v1')->group(function(){
     Route::get('/changeVat/getPending', [SuperadminToolFlagsController::class,'show']);
     Route::patch('/changeVat/processDone', [SuperadminToolFlagsController::class,'update']);
     Route::post('/settings', [PosSettingsController::class, 'show']);
-    Route::post('/posSetting', [PosSettingsController::class, 'store']);
 });
 
 
