@@ -199,8 +199,8 @@
         },
         props: {
             detail: {
-            type: String,
-            required: true
+                type: String,
+                required: true
             }
         },
         computed: {
@@ -284,6 +284,7 @@
                 .then((res) => { 
 
                     this.items = res.data.map(entry => {
+                        const uuid = entry.uuid;
                         const id = entry.id;
                         const branch = entry.branch;
                         const terminal = entry.terminal;
@@ -308,7 +309,7 @@
   
                         const hardware = imageWithTooltip;
                                
-                        return { id, branch, terminal, version, isVersionOutdated, latest_update,
+                        return {uuid, id, branch, terminal, version, isVersionOutdated, latest_update,
                                 backup, maintenance, expirationDate, hardware, cpuUsage, ramUsage, spaceUsage, serverDate};
                     });
    
@@ -322,24 +323,33 @@
 
             },
             checkPosSettings() {
-                const clientTerminalIds = this.items.map(item => item.id);
-                const clientterminalidApi = {
-                    clientTerminalId: clientTerminalIds
+               
+                const clientTerminalUuids = this.items.map(item => item.uuid);
+                const clientterminalUuidApi = {
+                    uuid: clientTerminalUuids
                 };
-                const api1 = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalidApi, headers);
-                const api2 = axios.post('/api/v1/settings', clientterminalidApi, headers);
+                const api1 = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalUuidApi, headers);
+                const api2 = axios.post('/api/v1/settings', clientterminalUuidApi, headers);
 
                 Promise.all([api1, api2])
                     .then(([res1, res2]) => {
                         const apiData = res1.data;
-                        const posData = res2.data;
+                        let posData = res2.data;
                         const state = [];
+                        
+                        posData = posData.map(posEntry => {
+                            const findClientterminalId = this.items.find(item => item.uuid === posEntry.uuid);
+                            return {
+                                ...posEntry,
+                                clientterminalId: findClientterminalId ? findClientterminalId.id : null 
+                            };
+                        });
+
                         apiData.forEach(apiEntry => {
                             const matchedEntry = posData.find(posEntry => {
-                                return Number(apiEntry.clientterminalid) === posEntry.clientterminalid && 
+                                return Number(apiEntry.clientterminalid) === Number(posEntry.clientterminalId) && 
                                     apiEntry.key.trim().toLowerCase() === posEntry.key.trim().toLowerCase();
                             });
-
                             const settings_date = apiEntry.settings_date || matchedEntry?.settings_date || 'N/A';
                             if (matchedEntry) {
                                 this.loading = true;
