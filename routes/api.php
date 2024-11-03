@@ -1,14 +1,18 @@
 <?php
 
-use App\Http\Controllers\Api\V1\SuperadminToolFlagsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\Api\V1\SuperadminToolFlagsController;
+use App\Http\Controllers\Api\V1\PosSettingsController;
 
 Route::prefix('v1')->group(function(){
 
     Route::post('/changeVat', [SuperadminToolFlagsController::class, 'store']);
     Route::get('/changeVat/getPending', [SuperadminToolFlagsController::class,'show']);
     Route::patch('/changeVat/processDone', [SuperadminToolFlagsController::class,'update']);
+    
+    Route::post('/store/possetting', [PosSettingsController::class, 'save']);
 });
 
 
