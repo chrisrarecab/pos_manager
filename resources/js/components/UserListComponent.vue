@@ -1,24 +1,23 @@
 <template>
-    <div style="width:97%;">
+    <div>
     <div class="d-flex justify-content-center align-items-center">
         <p class="text-center network-name">{{ clients.length ? clients[0].clientGroupName.toUpperCase() : 'No clients available' }}</p>
     </div>
-    <span class="spn-lnk"><b-link @click="addNewUser">Add New User</b-link></span>
-    <div class="header"><h2>Users</h2></div>
-    <div class="d-flex justify-content-center mt-5 align-items-center">
-        <!-- <div v-if="loading" class="overlay">
-            <b-spinner label="Loading..." variant="secondary" type="grow"></b-spinner>
-        </div> -->
-        <div v-if="users.length == 0" class="overlay">
-            <h5 class="no-data-text">NO DATA AVAILABLE</h5>
-        </div> 
-        
-        <b-table striped hover
+    
+    <div class="row mt-3 div-size d-flex justify-content-center" >
+        <h2>Users</h2>
+    </div>
+    <div class="row div-size">
+        <div class="col d-flex justify-content-end"><b-link @click="addNewUser">Add New User</b-link></div>
+    </div>
+
+    <div class="row div-size" style="margin: 0 auto; float: none;">
+        <div class="col">
+            <b-table striped hover
             :bordered="bordered"
             :items="paginatedItems"
             :fields="fields"
-            @row-clicked="editItem"
-            class="tbl">
+            @row-clicked="editItem">
             <template #cell(id)="data">
                 {{ data.item.id }}
             </template>
@@ -46,17 +45,25 @@
                 <!-- <b-button variant="danger" @click="editItem(data.item.id)">DELETE</b-button> -->
             </template>
             
-            
         </b-table>
+        </div>
     </div>
-    <div class="d-flex justify-content-center mt-5 align-items-center">
+    <div class="row">
+        <div v-if="users.length == 0" class="d-flex justify-content-center mt-2">
+            <h5 class="no-data-text">NO DATA AVAILABLE</h5>
+        </div> 
+    </div>
+    <div class="row">
+        <div class="d-flex justify-content-center mt-3 align-items-center">
         <b-pagination
             v-model="currentPage"
             :total-rows="users.length"
             :per-page="itemsPerPage"
             aria-controls="my-table">
         </b-pagination>
+        </div>
     </div>
+    
     </div>
 </template>
 <style scoped>
@@ -64,30 +71,15 @@
     width:1000px;
 }
 
-.header {
-    position:relative;
-    left:130px;
-    top: 30px;
-}
-.overlay {
-    position: absolute;
-    background: rgb(255, 255, 255); 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    top: 540px; 
-}
 .no-data-text {
     top: 850px; 
 }
 
-.spn-lnk {
-    position: relative;
-    top:80px;
-    left: 1020px;
+.div-size {
+    width: 60rem;
+    margin: 0 auto;
+    float: none;
 }
-
-
 
 </style>
 
@@ -165,7 +157,7 @@
                 const networkData = {
                     clientNetworkId: this.detail,
                 };
-                axios.post(apiUrl + '/TerminalList/GetClientByClientNetwork', networkData, {
+                axios.post(apiUrl + '/UserList/GetClientByClientNetwork', networkData, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  

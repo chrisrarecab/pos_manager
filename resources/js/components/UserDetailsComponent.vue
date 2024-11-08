@@ -1,5 +1,8 @@
 <template>
-<b-link :to="{ path: 'userlist', query: { detail: this.network } }" class="lnk">Return To User List</b-link>
+<div class="card" style="width:60rem; border:none;">
+    <b-link :to="{ path: 'userlist', query: { detail: this.network } }" class="d-flex justify-content-end">Return To User List</b-link>
+</div>
+
 <div class="card mx-auto" style="width: 60rem;">
     <div class="card-header">
         <div class="card-title"><h4>Details</h4></div>
@@ -210,7 +213,7 @@ export default {
                 clientNetworkId: this.network
             };
 
-            axios.post(apiUrl + '/TerminalList/GetBranchListByNetwork', clientNetworkData, {
+            axios.post(apiUrl + '/UserList/GetBranchListByNetwork', clientNetworkData, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
@@ -318,7 +321,6 @@ export default {
 <style>
 td{
     text-align: center;
-    /* width: 25% */
 }
 .td-lbl{
     width: 50%
@@ -328,8 +330,8 @@ td{
 }
 
 .card {
-    margin: 0 auto; /* Added */
-    float: none; /* Added */
+    margin: 0 auto;
+    float: none;
 }
 
 .userdetail-btn {
@@ -344,11 +346,6 @@ td{
 .card-header {
     background-color: #383838;
     color: white;
-}
-
-.lnk {
-    position:relative;
-    left: 1000px;
 }
 
 .error {
