@@ -6,6 +6,7 @@
 
 import './bootstrap';
 import { createApp } from 'vue';
+import BootstrapVue3 from 'bootstrap-vue-3';
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -14,12 +15,19 @@ import { createApp } from 'vue';
  */
 
 const app = createApp({});
+app.use(BootstrapVue3);
 
 
 import ExampleComponent from './components/ExampleComponent.vue';
+import UserListComponent from './components/UserListComponent.vue';
+import UserDetailsComponent from './components/UserDetailsComponent.vue';
+import UserBranchComponent from './components/UserBranchComponent.vue';
+
 
 app.component('example-component', ExampleComponent);
-
+app.component('user-list-component', UserListComponent);
+app.component('user-details-component', UserDetailsComponent);
+app.component('user-branch-component', UserBranchComponent);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
