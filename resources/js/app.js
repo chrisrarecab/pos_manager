@@ -6,6 +6,11 @@
 
 import './bootstrap';
 import { createApp } from 'vue';
+import BootstrapVue3 from 'bootstrap-vue-3';
+
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
+import '../css/app.css';
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -14,11 +19,15 @@ import { createApp } from 'vue';
  */
 
 const app = createApp({});
+app.use(BootstrapVue3);
 
-
-import ExampleComponent from './components/ExampleComponent.vue';
-
-app.component('example-component', ExampleComponent);
+import Login from './components/auth/Login.vue';
+import Register from './components/auth/Register.vue';
+import Sample from './components/Sample.vue';
+//import router from './routes'
+app.component('login', Login);
+app.component('register', Register);
+app.component('sample-component', Sample);
 
 /**
  * The following block of code may be used to automatically register your

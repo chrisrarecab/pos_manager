@@ -1,10 +1,12 @@
-@extends('layout')
+@extends('auth')
 @section('style')
 @endsection
 
+@section('title', 'Register')
+
 @section('content')
 <div class="container">
-    <sample-component></sample-component>
+    <register></register>
 </div>
 
 @endsection
