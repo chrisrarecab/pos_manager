@@ -59,7 +59,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-group text-center">
+                <!-- debug only -->
+                <div class="form-group text-center" style="display: none;">
                     <form @submit.prevent="checkSession">
                         <button type="submit">Check Session</button>
                     </form>
@@ -101,10 +102,10 @@
                 this.errors = [];
                 this.alertMessage = false;
                 if (!this.username) {
-                    this.errors.push("Username required");
+                    this.errors.push("Username is required");
                 }
                 if (!this.password) {
-                    this.errors.push("Password required");
+                    this.errors.push("Password is required");
                 }
                 if (this.errors.length > 0) {
                     this.alertMessage = true;
@@ -122,8 +123,13 @@
                     if (response.status == 200) {
                         alert('Login successfully!');
                         window.location.href = "http://localhost:99/sample";
+                        //self.$router.push('/sample').then(()=> {this.$router.go(0)});
+                        //self.$router.next({ path: '/' });
+                        //self.$router.push('/register');
                     }
                 }).catch((error) => {
+                    this.loadingSpinner = false;
+                    console.log(error);
                     if (typeof error.response.data.message !== 'undefined') {
                         this.errors.push(error.response.data.message);
                         this.alertMessage = true;
@@ -132,7 +138,7 @@
                         this.errors.push(error.response.data.error);
                         this.alertMessage = true;
                     }
-                    this.loadingSpinner = false;
+                    
                 })
             }
         }

@@ -1,6 +1,5 @@
 <template>
     <p class="text-center">User has logged in.</p>
-    <textarea class="text-center" v-model="userInfo"></textarea>
 </template>
 <script>
     export default {
@@ -9,7 +8,6 @@
         },
         data() {
             return {
-                userInfo: '',
             }
         },
         created () {
