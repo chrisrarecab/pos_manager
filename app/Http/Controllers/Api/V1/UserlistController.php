@@ -81,6 +81,16 @@ class UserlistController extends Controller
         return json_encode(compact('userDetails'));
     }
 
+    public function checkUsername(Request $request)
+    {
+        $countUsername = Userlist::where('username', $request->username)
+                            ->where('id', '<>', $request->id )
+                            ->where('is_deleted', 0)
+                            ->count();
+        
+        return $countUsername;
+    }
+
     public function edit(Request $request)
     {
         $userId = $request->input('id');
@@ -88,7 +98,6 @@ class UserlistController extends Controller
         $fullName = $request->input('fullname');
         $status = $request->input('status');
         $password = $request->input('password');
-        // $branches = $request->input('branches');
 
         $updateValue = Userlist::where('id', $userId)
                         ->update(['full_name' => $fullName, 

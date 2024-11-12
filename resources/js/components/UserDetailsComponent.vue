@@ -100,7 +100,7 @@
     </div>
     <br>
     <div class="text-center">
-        <b-button class="userdetail-btn" @click="saveUser">Save</b-button>
+        <b-button class="userdetail-btn" @click="validateUser">Save</b-button>
     </div>
     <br>
 </template>
@@ -158,9 +158,6 @@ export default {
           { text: 'Edit', value: 303 },
           { text: 'Delete', value: 304 }
         ],
-        error_username: '',
-        error_fullname: '',
-        error_password: ''
       }
     },
     props: {
@@ -184,6 +181,7 @@ export default {
                 this.password = this.user.password;
                 this.status_selected = this.user.status;
                 this.network = this.user.client_network_id;
+                // alert(this.password);
 
                 this.LoadBranches();
                 this.getSelectedBranches();
@@ -247,8 +245,55 @@ export default {
                 // console.log(this.taggingSelected);         
             });   
         },
+        async validateUser() {
+            let username = $('#username').val();
+            let fullname = $('#fullname').val();
+            let errors = [];
+            let error_message = "";
+            console.log(this.taggingSelected);
+            // let password = $('#password').val();
+
+            if (fullname == '') {
+                errors.push('Full Name should not be empty!');
+            }
+            if (username == '') {
+                errors.push('Username should not be empty!');
+            }
+            await axios.get('/api/v1/checkUsernameApi',{ params: { id: this.detail,  username: username} }).then(res=>{
+                // console.log(typeof(res.data));
+                // alert(res.data);
+                if(res.data == 1){
+                    errors.push('Username already exists!');
+                }
+                // alert('errors: '+errors.length);
+            });
+            if (this.taggingSelected.length == 0){
+                errors.push('Select at least 1 branch!');
+            }
+            if (this.user_selected.length == 0 && this.settings_selected == 0 && this.audit_selected == 0) {
+                errors.push('Select at least 1 permission!');
+            }
+
+            
+            // alert('errors outside: '+ errors.length);
+            // if (password == '') {
+            //     this.error_password = 'Password should not be empty!';
+            // }
+            if(errors.length > 0) {
+                let i = 0;
+
+                while (i < errors.length) {
+                    error_message += errors[i] + "\n";
+                    i++;
+                }
+                alert(error_message);
+                // location.reload();
+            } else {
+                this.saveUser();
+            }
+
+        },
         saveUser () {
-            // alert(this.full_name);
             
             let username = $('#username').val();
             let fullname = $('#fullname').val();
@@ -299,17 +344,17 @@ export default {
                     alert('Saved!');
                     location.reload();
                 })
-                .catch((error) => {
-                    console.error("Error Saving Data: ", error.response.data.errors);
-                    this.error_fullname = error.response.data.errors.fullname;
-                    // if(this.error_fullname != ''){
-                    //     $('#fullname').attr('placeholder', this.error_fullname);
-                    // }
-                    this.error_username = error.response.data.errors.username;
-                    this.error_password = error.response.data.errors.password;
+                // .catch((error) => {
+                //     console.error("Error Saving Data: ", error.response.data.errors);
+                //     this.error_fullname = error.response.data.errors.fullname;
+                //     // if(this.error_fullname != ''){
+                //     //     $('#fullname').attr('placeholder', this.error_fullname);
+                //     // }
+                //     this.error_username = error.response.data.errors.username;
+                //     this.error_password = error.response.data.errors.password;
 
-                    // alert(this.error_fullname +'\n'+ this.error_username +'\n'+ this.error_password);
-                });
+                //     // alert(this.error_fullname +'\n'+ this.error_username +'\n'+ this.error_password);
+                // });
         }
     }
 
@@ -341,6 +386,11 @@ td{
 
 .userdetail-btn:hover {
     background-color:#368f66;
+}
+
+.userdetail-btn:focus {
+    background-color: #41b883;
+    /* border: none; */
 }
 
 .card-header {

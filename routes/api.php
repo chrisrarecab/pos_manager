@@ -19,6 +19,7 @@ Route::prefix('v1')->group(function(){
     Route::post('/userDetailsEdit',[UserlistController::class, 'edit']);
     Route::post('/userAddApi',[UserlistController::class, 'add']);
     Route::post('/deleteUserApi', [UserlistController::class, 'delete']);
+    Route::get('/checkUsernameApi', [UserlistController::class, 'checkUsername']);
 
     Route::get('/userPermissionsApi',[UserPermissionsController::class, 'index']);
     Route::post('/userPermissionEdit',[UserPermissionsController::class, 'edit']);
