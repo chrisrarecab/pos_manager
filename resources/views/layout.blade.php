@@ -35,6 +35,14 @@
                 <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Configuration</a></li>
                 <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Backup</a></li>
                 <li class="nav-item"><a href="#" class="nav-link link-dark  px-2">Logs</a></li>
+                @if(session('userId'))
+                <li class="nav-item">
+                    <a href="logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="nav-link link-dark px-2">Logout</a>
+                    <form id="logout-form" action="logout" method="POST" style="display: none;">
+                        {{ csrf_field() }}
+                    </form>
+                </li>
+                @endif
             </ul>
         </div>
     </nav>
@@ -49,8 +57,13 @@
             </a>
             <form class="col-12 col-lg-auto mb-3 mb-lg-0">
                 <ul class="nav">
-                    <li class="nav-item"><a href="#" class="nav-link link-dark text-decoration-underline px-2">Hi! Erika
-                            Velasco</a></li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link link-dark text-decoration-underline px-2">
+                            @if(session('userId'))
+                            <h6>Hi {{session('fullName')}}!</h6>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
             </form>
         </div>

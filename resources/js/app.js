@@ -21,11 +21,12 @@ import '../css/app.css';
 const app = createApp({});
 app.use(BootstrapVue3);
 app.use(router);
-
+import CheckAuth from './components/auth/CheckAuth.vue';
 import Login from './components/auth/Login.vue';
 import Register from './components/auth/Register.vue';
 import Sample from './components/Sample.vue';
 import router from './router';
+app.component('session-component', CheckAuth);
 app.component('login', Login);
 app.component('register', Register);
 app.component('sample-component', Sample);

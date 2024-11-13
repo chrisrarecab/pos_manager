@@ -74,6 +74,7 @@
     export default {
         mounted(){
             this.focusInput();
+            this.checkSession();
         },
         data() {
             return {
@@ -93,7 +94,9 @@
                 axios.get('api/checkUserSession', {
 
                 }).then((response) => {
-                    console.log(response);
+                    if (response.data == true) {
+                        window.location.href = "http://localhost:99/sample";
+                    }
                 }).catch((error) => {
                     console.log(error);
                 });

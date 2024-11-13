@@ -53,6 +53,7 @@
     export default {
         mounted(){
             this.focusInput();
+            this.checkSession();
         },
         data() {
             return {
@@ -68,6 +69,17 @@
         methods: {
             focusInput() {
                 this.$refs.register.focus();
+            },
+            checkSession() {
+                axios.get('api/checkUserSession', {
+
+                }).then((response) => {
+                    if (response.data == true) {
+                        window.location.href = "sample";
+                    }
+                }).catch((error) => {
+                    console.log(error);
+                });
             },
             register() {
                 let self = this;

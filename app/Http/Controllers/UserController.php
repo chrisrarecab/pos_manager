@@ -5,30 +5,37 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Controllers\ClientBaseApiController;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Session\Middleware\StartSession;
 use Hash;
+use Session;
 
 class UserController extends Controller
 {   
-    public function checkUserSession(Request $request)
+    public function getSession(Request $request)
     {
-        $userId = null;
-        $isSuccessful = false;
-        $statusResponse = 404;
-
-        if (Auth::check()) {
-            $userId = Auth::user()->id;
-            $isSuccessful = true;
-            $statusResponse = 200;
-        }
-        
+        $data['session'] = session()->all();
         return response()->json([
-            'isSuccessful' => $isSuccessful,
-            'userId' => $userId,
-        ], $statusResponse);
+            'values' => $data,
+        ], 200);
+    }
+
+    public function checkAuth()
+    {
+        $userId = session()->get('userId');
+        return $userId > 0;
+    }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        session()->flush();
+        return redirect('/login');
     }
 
     public function login(Request $request)
@@ -47,8 +54,11 @@ class UserController extends Controller
 
         $user = Auth::user();
         $user->tokens()->delete();
-        $request->session()->regenerate();
-
+        session()->regenerate();
+        session()->put('userId', $user->id);
+        session()->put('clientGroupId', $user->client_group_id);
+        session()->put('fullName', $user->full_name);
+        session()->save();
         return response()->json([
                 'status' => 'success',
                 'user' => $user,

@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
         //$middleware->append(EnsureTokenIsValid::class);
         //$middleware->append(EnsureUserHasRole::class.':admin');
         $middleware->append(StartSession::class);
+        $middleware->api(append: [
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+        $middleware->web(append: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+        $middleware->api(append: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
