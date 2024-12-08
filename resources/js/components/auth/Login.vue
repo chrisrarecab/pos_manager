@@ -59,12 +59,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- debug only -->
-                <div class="form-group text-center" style="display: none;">
-                    <form @submit.prevent="checkSession">
-                        <button type="submit">Check Session</button>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
@@ -73,8 +67,7 @@
 
     export default {
         mounted(){
-            this.focusInput();
-            this.checkSession();
+            this.initialized();
         },
         data() {
             return {
@@ -84,24 +77,19 @@
                 errorMessage: '',
                 alertMessage: false,
                 loadingSpinner: false,
+                isLoading: false,
+                params: '',
             }
         },
         methods: {
-            focusInput() {
+            initialized() {
                 this.$refs.username.focus();
             },
-            checkSession() {
-                axios.get('api/checkUserSession', {
-
-                }).then((response) => {
-                    if (response.data == true) {
-                        window.location.href = "http://localhost:99/sample";
-                    }
-                }).catch((error) => {
-                    console.log(error);
-                });
-            },
             loginCore() {
+                if (this.isLoading) {
+                    return;
+                }
+                this.isLoading = true;
                 this.errors = [];
                 this.alertMessage = false;
                 if (!this.username) {
@@ -125,11 +113,9 @@
                     this.loadingSpinner = false;
                     if (response.status == 200) {
                         alert('Login successfully!');
-                        window.location.href = "http://localhost:99/sample";
-                        //self.$router.push('/sample').then(()=> {this.$router.go(0)});
-                        //self.$router.next({ path: '/' });
-                        //self.$router.push('/register');
+                        self.$router.push('/dashboard').then(()=> {this.$router.go(0)});
                     }
+                    isLoading = false;
                 }).catch((error) => {
                     this.loadingSpinner = false;
                     console.log(error);
@@ -141,7 +127,7 @@
                         this.errors.push(error.response.data.error);
                         this.alertMessage = true;
                     }
-                    
+                    this.isLoading = false;
                 })
             }
         }

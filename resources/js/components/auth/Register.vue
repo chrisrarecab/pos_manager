@@ -52,8 +52,7 @@
 <script>
     export default {
         mounted(){
-            this.focusInput();
-            this.checkSession();
+            this.initialize();
         },
         data() {
             return {
@@ -67,19 +66,8 @@
             }
         },
         methods: {
-            focusInput() {
+            initialize() {
                 this.$refs.register.focus();
-            },
-            checkSession() {
-                axios.get('api/checkUserSession', {
-
-                }).then((response) => {
-                    if (response.data == true) {
-                        window.location.href = "sample";
-                    }
-                }).catch((error) => {
-                    console.log(error);
-                });
             },
             register() {
                 let self = this;
@@ -92,12 +80,12 @@
                     username: this.username,
                     fullname: this.fullname,
                     password: this.password,
+                    admin: 1,
                 }).then((response) => {
                     console.log(response);
                     if (response.status == 200) {
                         alert('Registered successfully!');
-                        //self.$router.push('/login').then(()=> {this.$router.go(0)});
-                        window.location.href = "http://localhost:99/login";
+                        self.$router.push('/login').then(()=> {this.$router.go(0)});
                     }
                 }).catch((error) => {
                     console.log(error);

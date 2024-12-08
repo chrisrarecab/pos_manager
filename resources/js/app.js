@@ -24,12 +24,12 @@ app.use(router);
 import CheckAuth from './components/auth/CheckAuth.vue';
 import Login from './components/auth/Login.vue';
 import Register from './components/auth/Register.vue';
-import Sample from './components/Sample.vue';
+import Dashboard from './components/Dashboard.vue';
 import router from './router';
 app.component('session-component', CheckAuth);
 app.component('login', Login);
 app.component('register', Register);
-app.component('sample-component', Sample);
+app.component('dashboard-component', Dashboard);
 
 /**
  * The following block of code may be used to automatically register your

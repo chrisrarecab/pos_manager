@@ -1,13 +1,11 @@
-@extends('auth')
+@extends('layout')
 @section('style')
 @endsection
-
-@section('title', 'Login')
 
 @section('content')
 <div class="container">
     <session-component></session-component>
-    <login></login>
+    <dashboard-component></dashboard-component>
 </div>
 
 @endsection

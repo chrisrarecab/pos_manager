@@ -24,8 +24,8 @@
     <div class="img-div">
         <img src="{{URL::asset('/images/img.jpg')}}"class=" header-img" alt="Responsive image">
     </div>
+    @if(session('userId'))
     <nav class="py-2 bg-light border-bottom">
-       
         <div class="container d-flex flex-wrap">
             <ul class="nav me-auto">
             </ul>
@@ -46,6 +46,7 @@
             </ul>
         </div>
     </nav>
+    @endif
     <header class="py-3 mb-4">
         <div class="container d-flex flex-wrap justify-content-center">
             <a href="/" class="d-flex align-items-center mb-3 mb-lg-0 me-lg-auto text-dark text-decoration-none">

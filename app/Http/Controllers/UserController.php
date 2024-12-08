@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserPermission;
 use App\Http\Controllers\ClientBaseApiController;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -70,7 +71,7 @@ class UserController extends Controller
     {
         $request->validate([
             'secretkey' => 'required',
-            'username' => 'required|unique:users',
+            'username' => 'required',
             'fullname' => 'required|max:100',
             'password' => 'required|min:6',
         ]);
@@ -103,6 +104,13 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        if (isset($request->admin)) {
+            UserPermission::insert([
+                'user_id' => $userId,
+                'code' => 100,
+            ]);
+        }
+        
         $data['secretKey'] = $request->secretkey;
         $endpoint = $api->getUrl("activate_secret");
         $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->post($endpoint, [
