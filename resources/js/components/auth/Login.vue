@@ -102,7 +102,6 @@
                     this.alertMessage = true;
                     return;
                 }
-
                 this.loadingSpinner = true;
                 let self = this;
                 axios.post('api/login', {

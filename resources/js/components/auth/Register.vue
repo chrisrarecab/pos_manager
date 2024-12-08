@@ -15,7 +15,7 @@
                             <tbody>
                                 <tr>
                                     <td colspan="2"><label>Secret Key:</label></td>
-                                    <td colspan="2"><input v-model="secretkey" ref="register" type="text" class="form-control"></td>
+                                    <td colspan="2"><input v-model="secretkey" ref="register" type="text" class="form-control" :disabled="disabled"></td>
                                 </tr>
                                 <tr>
                                     <td colspan="2"><label>Username:</label></td>
@@ -63,18 +63,32 @@
                 alertMessage: false,
                 loadingSpinner: false,
                 errors: [],
+                disabled: 0,
+                isLoading: false,
+            }
+        },
+        props: {
+            secret: {
+                type: String
             }
         },
         methods: {
             initialize() {
                 this.$refs.register.focus();
+                if (this.secret != '') {
+                    this.secretkey = this.secret;
+                    this.disabled = 1;
+                }
             },
             register() {
+                if (this.isLoading) {
+                    return;
+                }
+                this.isLoading = true;
                 let self = this;
                 this.errors = [];
                 this.alertMessage = false;
                 this.loadingSpinner = true;
-                
                 axios.post('api/register', {
                     secretkey: this.secretkey,
                     username: this.username,
@@ -93,6 +107,7 @@
                         this.errors.push(error.response.data.message);
                         this.alertMessage = true;
                         this.loadingSpinner = false;
+                        this.isLoading = false;
                     }
                 })
             }

@@ -6,7 +6,7 @@
 
 @section('content')
 <div class="container">
-    <register></register>
+    <register :secret="{{ json_encode($secret) }}"></register>
 </div>
 
 @endsection
