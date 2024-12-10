@@ -33,6 +33,8 @@ class ClientBaseApiController extends Controller
                 return $this->hostname."/api/v1/PosManagerToken/validateSecret";
             case "activate_secret":
                 return $this->hostname."/api/v1/PosManagerToken/activateSecret";
+            case "verify_domain":
+                return $this->hostname."/api/v1/PosManagerToken/verifyDomain";
             default:
                 return $this->hostname."/";
         }

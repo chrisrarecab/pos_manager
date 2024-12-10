@@ -5,8 +5,13 @@
 @section('title', 'Register')
 
 @section('content')
+
 <div class="container">
-    <register :secret="{{ json_encode($secret) }}"></register>
+    @if ($source_project =='core')  
+        <register-core :secret="{{ json_encode($secret) }}"></register-core>
+    @else
+        <register-cirms></register-cirms>
+    @endif
 </div>
 
 @endsection

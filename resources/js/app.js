@@ -24,11 +24,13 @@ app.use(router);
 import CheckAuth from './components/auth/CheckAuth.vue';
 import Login from './components/auth/Login.vue';
 import Register from './components/auth/Register.vue';
+import RegisterCirms from './components/auth/RegisterCirms.vue';
 import Dashboard from './components/Dashboard.vue';
 import router from './router';
 app.component('session-component', CheckAuth);
 app.component('login', Login);
-app.component('register', Register);
+app.component('register-core', Register);
+app.component('register-cirms', RegisterCirms);
 app.component('dashboard-component', Dashboard);
 
 /**

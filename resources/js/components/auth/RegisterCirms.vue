@@ -14,8 +14,8 @@
                         <table class="center">
                             <tbody>
                                 <tr>
-                                    <td colspan="2"><label>Secret Key:</label></td>
-                                    <td colspan="2"><input v-model="secretkey" ref="secretkey" type="text" class="form-control" :disabled="disabled"></td>
+                                    <td colspan="2"><label>Domain:</label></td>
+                                    <td colspan="2"><input v-model="domain" ref="domain" type="text" class="form-control"></td>
                                 </tr>
                                 <tr>
                                     <td colspan="2"><label>Username:</label></td>
@@ -56,7 +56,7 @@
         },
         data() {
             return {
-                secretkey: '',
+                domain: '',
                 username: '',
                 fullname: '',
                 password: '',
@@ -67,18 +67,9 @@
                 isLoading: false,
             }
         },
-        props: {
-            secret: {
-                type: String
-            }
-        },
         methods: {
             initialize() {
-                this.$refs.secretkey.focus();
-                if (this.secret != '') {
-                    this.secretkey = this.secret;
-                    this.disabled = 1;
-                }
+                this.$refs.domain.focus();
             },
             register() {
                 if (this.isLoading) {
@@ -89,8 +80,8 @@
                 this.errors = [];
                 this.alertMessage = false;
                 this.loadingSpinner = true;
-                axios.post('../api/register', {
-                    secretkey: this.secretkey,
+                axios.post('../api/registerCirms', {
+                    domain: this.domain,
                     username: this.username,
                     fullname: this.fullname,
                     password: this.password,

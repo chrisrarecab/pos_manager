@@ -15,6 +15,7 @@ Route::prefix('v1')->group(function(){
 
 Route::get('/user', function (Request $request) { return $request->user(); })->middleware('auth:sanctum');
 Route::post('register', [UserController::class, 'registerBySecretKey']);
+Route::post('registerCirms', [UserController::class, 'registerByDomain']);
 Route::post('login', [UserController::class, 'login']);
 Route::post('logout', [UserController::class, 'logout']);
 Route::get('checkUserSession', [UserController::class, 'checkAuth']);

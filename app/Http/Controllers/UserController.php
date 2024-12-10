@@ -89,9 +89,12 @@ class UserController extends Controller
         if ($response['isSuccessful'] == false) {
             throw ValidationException::withMessages(['message' => $response['error']]);
         }
-        
         $clientGroupId = $response['data']['values']['clientGroupId'];
+        $usernameExistByGroup = User::select('username')->where('username', $request->username)->where('is_deleted', 0)->where('client_group_id', $clientGroupId)->get();
         
+        if ($usernameExistByGroup->isNotEmpty()) {
+            throw ValidationException::withMessages(['message' => "Username already used."]);
+        }
         $userId = User::insertGetId([
             'username' => $request->username,
             'full_name' => $request->fullname,
@@ -110,7 +113,6 @@ class UserController extends Controller
                 'code' => 100,
             ]);
         }
-        
         $data['secretKey'] = $request->secretkey;
         $endpoint = $api->getUrl("activate_secret");
         $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->post($endpoint, [
@@ -120,7 +122,70 @@ class UserController extends Controller
 
         return response()->json([
             "errors" => [],
-            "message" => "OK",
+            "message" => "Successfully created.",
+            "isSuccessful" => true,
+            "userId" => $userId,
+            "status" => 200,
+        ], 200);
+    }
+
+    public function registerByDomain(Request $request)
+    {
+        $request->validate([
+            'domain' => 'required',
+            'username' => 'required',
+            'fullname' => 'required|max:100',
+            'password' => 'required|min:6',
+        ]);
+        $api = new ClientBaseApiController();
+        $endpoint = $api->getUrl("verify_domain");
+        $params = "?domain=".$request->domain;
+        $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->get($endpoint.$params);
+
+        if (! isset($response['isSuccessful'])) {
+            throw ValidationException::withMessages(['message' => "Error: Unable to reach server."]);
+        }
+
+        if ($response['isSuccessful'] == false) {
+            throw ValidationException::withMessages(['message' => $response['error']]);
+        }
+        $clientBaseValues = $response['data']['values'];
+        $clientGroupId = $clientBaseValues['clientGroupId'];
+        $clientGroupId = $clientBaseValues['clientNetworkId'];
+        $domain = $clientBaseValues['domain'];
+        $cirmsResult = Http::withOptions(['verify' => false])->get('https://'.$domain.'/api/user/login?username='.$request->username.'&password='.$request->password);
+
+        if ($cirmsResult->failed()) {
+            throw ValidationException::withMessages(['message' => $cirmsResult['errors']]);
+        }
+        $usernameExistByGroup = User::select('username')->where('username', $request->username)->where('is_deleted', 0)->where('client_group_id', $clientGroupId)->get();
+
+        if ($usernameExistByGroup->isNotEmpty()) {
+            throw ValidationException::withMessages(['message' => "Username already used."]);
+        }
+
+        $userId = User::insertGetId([
+            'username' => $request->username,
+            'full_name' => $request->fullname,
+            'status' => 1,
+            'created_date' => now(),
+            'last_modified_date' => now(),
+            'created_by' => 1,
+            'last_modified_by' => 1,
+            'client_group_id' => $clientGroupId,
+            'password' => Hash::make($request->password),
+        ]);
+
+        if (isset($request->admin) || $request->username == 'admin') {
+            UserPermission::insert([
+                'user_id' => $userId,
+                'code' => 100,
+            ]);
+        }
+
+        return response()->json([
+            "errors" => [],
+            "message" => "Successfully created.",
             "isSuccessful" => true,
             "userId" => $userId,
             "status" => 200,
