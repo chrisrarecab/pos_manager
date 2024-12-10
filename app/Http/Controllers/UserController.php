@@ -41,7 +41,35 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1];
+        $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0];
+
+        try {
+            $isSuccessful = Auth::attempt($credentials);
+            if (!$isSuccessful) {
+                return response()->json(['error' => 'Incorrect username or password'], 400);
+            }
+        }
+        catch (Exception $e) {
+            return response()->json(['error' => 'Authentication error (500)'], 500);
+        }
+
+        $user = Auth::user();
+        $user->tokens()->delete();
+        session()->regenerate();
+        session()->put('userId', $user->id);
+        session()->put('clientGroupId', $user->client_group_id);
+        session()->put('fullName', $user->full_name);
+        session()->save();
+        return response()->json([
+                'status' => 'success',
+                'user' => $user,
+                'token' => $user->createToken('auth_token')->plainTextToken,
+        ]);
+    }
+
+    public function loginCirms(Request $request)
+    {
+        $credentials = ['username' => $request->username, 'status' => 1, 'is_deleted' => 0];
 
         try {
             $isSuccessful = Auth::attempt($credentials);
@@ -105,6 +133,7 @@ class UserController extends Controller
             'last_modified_by' => 1,
             'client_group_id' => $clientGroupId,
             'password' => Hash::make($request->password),
+            'source_project_id' => 1,
         ]);
 
         if (isset($request->admin)) {
@@ -174,6 +203,7 @@ class UserController extends Controller
             'last_modified_by' => 1,
             'client_group_id' => $clientGroupId,
             'password' => Hash::make($request->password),
+            'source_project_id' => 2,
         ]);
 
         if (isset($request->admin) || $request->username == 'admin') {
