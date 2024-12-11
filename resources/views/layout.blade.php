@@ -61,7 +61,8 @@
                     <li class="nav-item">
                         <a href="#" class="nav-link link-dark text-decoration-underline px-2">
                             @if(session('userId'))
-                            <h6>Hi {{session('fullName')}}!</h6>
+                            <h6>Hi {{session('fullName')}}! <span> ({{session('clientGroupId')}})</span></h6>
+                            
                             @endif
                         </a>
                     </li>

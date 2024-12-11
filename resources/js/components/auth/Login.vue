@@ -32,16 +32,16 @@
                                     <form @submit.prevent="loginCirms">
                                         <div class="login-form">
                                             <div class="form-group">
-                                                <input class="form-control" ref="domain" type="text" placeholder="domain" disabled>
+                                                <input class="form-control" v-model="domain" ref="domain" type="text" placeholder="domain">
                                             </div>
                                             <div class="form-group">
-                                                <input class="form-control" ref="usernameCirms" type="text" placeholder="username" disabled>
+                                                <input class="form-control" v-model="username" ref="usernameCirms" type="text" placeholder="username">
                                             </div>
                                             <div class="form-group">
-                                                <input class="form-control" ref="password" type="password" placeholder="password" disabled>
+                                                <input class="form-control" v-model="password" ref="password" type="password" placeholder="password">
                                             </div>
                                             <div class="form-group text-center">
-                                                <b-button class="btn-default" disabled>Login</b-button>
+                                                <b-button class="btn-default" type="submit">Login</b-button>
                                             </div>
                                         </div>
                                     </form>
@@ -74,7 +74,9 @@
                 errors: [],
                 username: '',
                 password: '',
+                domain: '',
                 errorMessage: '',
+                sourceProject: 1,
                 alertMessage: false,
                 loadingSpinner: false,
                 isLoading: false,
@@ -85,48 +87,70 @@
             initialized() {
                 this.$refs.username.focus();
             },
+            checkDomainFormat(domain) {
+                return (/^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}$/i.test(domain));
+            },
             loginCore() {
-                if (this.isLoading) {
-                    return;
-                }
-                this.isLoading = true;
                 this.errors = [];
-                this.alertMessage = false;
-                if (!this.username) {
-                    this.errors.push("Username is required");
+                this.sourceProject = 1;
+                this.loginValidation(this);
+            },
+            loginCirms() {
+                this.errors = [];
+                if (this.domain === '') {
+                    this.errors.push("Domain is required");
                 }
-                if (!this.password) {
-                    this.errors.push("Password is required");
+                else if (!this.checkDomainFormat(this.domain)) {
+                    this.errors.push("Invalid domain format");
                 }
-                if (this.errors.length > 0) {
-                    this.alertMessage = true;
+                this.sourceProject = 2;
+                this.loginValidation(this);
+            },
+            loginValidation(self) {
+                if (self.isLoading) {
                     return;
                 }
-                this.loadingSpinner = true;
-                let self = this;
+                self.isLoading = true;
+                self.alertMessage = false;
+
+                if (self.username === '') {
+                    self.errors.push("Username is required");
+                }
+                if (self.password === '') {
+                    self.errors.push("Password is required");
+                }
+                if (self.errors.length > 0) {
+                    self.alertMessage = true;
+                    self.isLoading = false;
+                    return;
+                }
+                self.loadingSpinner = true;
+
                 axios.post('api/login', {
-                    username: this.username,
-                    password: this.password,
+                    username: self.username,
+                    password: self.password,
+                    domain: self.domain,
+                    project: self.sourceProject,
                 }).then((response) => {
                     console.log(response);
-                    this.loadingSpinner = false;
+                    self.loadingSpinner = false;
                     if (response.status == 200) {
                         alert('Login successfully!');
-                        self.$router.push('/dashboard').then(()=> {this.$router.go(0)});
+                        self.$router.push('/dashboard').then(()=> {self.$router.go(0)});
                     }
-                    isLoading = false;
+                    self.isLoading = false;
                 }).catch((error) => {
-                    this.loadingSpinner = false;
+                    self.loadingSpinner = false;
                     console.log(error);
                     if (typeof error.response.data.message !== 'undefined') {
-                        this.errors.push(error.response.data.message);
-                        this.alertMessage = true;
+                        self.errors.push(error.response.data.message);
+                        self.alertMessage = true;
                     }
                     if (typeof error.response.data.error !== 'undefined') {
-                        this.errors.push(error.response.data.error);
-                        this.alertMessage = true;
+                        self.errors.push(error.response.data.error);
+                        self.alertMessage = true;
                     }
-                    this.isLoading = false;
+                    self.isLoading = false;
                 })
             }
         }

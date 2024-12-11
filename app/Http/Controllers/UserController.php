@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\UserPermission;
 use App\Http\Controllers\ClientBaseApiController;
+use App\Http\Controllers\CirmsApiController;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
@@ -41,7 +42,18 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0];
+        switch ($request->project) {
+            case 1:
+                $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0, 'source_project_id' => 1];
+                break;
+            
+            case 2:
+                $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0, 'source_project_id' => 2];
+                break;
+
+            default:
+                break;
+        }
 
         try {
             $isSuccessful = Auth::attempt($credentials);
@@ -53,32 +65,11 @@ class UserController extends Controller
             return response()->json(['error' => 'Authentication error (500)'], 500);
         }
 
-        $user = Auth::user();
-        $user->tokens()->delete();
-        session()->regenerate();
-        session()->put('userId', $user->id);
-        session()->put('clientGroupId', $user->client_group_id);
-        session()->put('fullName', $user->full_name);
-        session()->save();
-        return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'token' => $user->createToken('auth_token')->plainTextToken,
-        ]);
-    }
-
-    public function loginCirms(Request $request)
-    {
-        $credentials = ['username' => $request->username, 'status' => 1, 'is_deleted' => 0];
-
-        try {
-            $isSuccessful = Auth::attempt($credentials);
-            if (!$isSuccessful) {
-                return response()->json(['error' => 'Incorrect username or password'], 400);
-            }
-        }
-        catch (Exception $e) {
-            return response()->json(['error' => 'Authentication error (500)'], 500);
+        if ($request->project == 2) {
+            $api = new ClientBaseApiController();
+            $api->verifyClientDomain($request->domain);
+            $cirmsApi = new CirmsApiController();
+            $cirmsApi->userAuthentication($request);
         }
 
         $user = Auth::user();
@@ -87,12 +78,12 @@ class UserController extends Controller
         session()->put('userId', $user->id);
         session()->put('clientGroupId', $user->client_group_id);
         session()->put('fullName', $user->full_name);
+        session()->put('sourceProjectId', $user->source_project_id);
         session()->save();
         return response()->json([
-                'status' => 'success',
                 'user' => $user,
                 'token' => $user->createToken('auth_token')->plainTextToken,
-        ]);
+        ], 200);
     }
 
     public function registerBySecretKey(Request $request)
@@ -105,18 +96,7 @@ class UserController extends Controller
         ]);
     
         $api = new ClientBaseApiController();
-
-        $endpoint = $api->getUrl("validate_secret");
-        $params = "?secretKey=".$request->secretkey;
-        $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->get($endpoint.$params);
-
-        if (! isset($response['isSuccessful'])) {
-            throw ValidationException::withMessages(['message' => "Error: Unable to reach server."]);
-        }
-
-        if ($response['isSuccessful'] == false) {
-            throw ValidationException::withMessages(['message' => $response['error']]);
-        }
+        $response = $api->validateSecretKey($request->secretkey);
         $clientGroupId = $response['data']['values']['clientGroupId'];
         $usernameExistByGroup = User::select('username')->where('username', $request->username)->where('is_deleted', 0)->where('client_group_id', $clientGroupId)->get();
         
@@ -143,12 +123,7 @@ class UserController extends Controller
             ]);
         }
         $data['secretKey'] = $request->secretkey;
-        $endpoint = $api->getUrl("activate_secret");
-        $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->post($endpoint, [
-            "secretKey" => $request->secretkey, 
-            "posManagerUserId" => $userId,
-        ]);
-
+        $response = $api->activateSecretKey($request->secretkey, $userId);
         return response()->json([
             "errors" => [],
             "message" => "Successfully created.",
@@ -166,27 +141,20 @@ class UserController extends Controller
             'fullname' => 'required|max:100',
             'password' => 'required|min:6',
         ]);
+
+        /* check if domain exist in client base as network name */
         $api = new ClientBaseApiController();
-        $endpoint = $api->getUrl("verify_domain");
-        $params = "?domain=".$request->domain;
-        $response = Http::withHeaders(["Authorization" => $api->getAuthorization()])->get($endpoint.$params);
-
-        if (! isset($response['isSuccessful'])) {
-            throw ValidationException::withMessages(['message' => "Error: Unable to reach server."]);
-        }
-
-        if ($response['isSuccessful'] == false) {
-            throw ValidationException::withMessages(['message' => $response['error']]);
-        }
+        $response = $api->verifyClientDomain($request->domain);
         $clientBaseValues = $response['data']['values'];
         $clientGroupId = $clientBaseValues['clientGroupId'];
         $clientGroupId = $clientBaseValues['clientNetworkId'];
         $domain = $clientBaseValues['domain'];
-        $cirmsResult = Http::withOptions(['verify' => false])->get('https://'.$domain.'/api/user/login?username='.$request->username.'&password='.$request->password);
 
-        if ($cirmsResult->failed()) {
-            throw ValidationException::withMessages(['message' => $cirmsResult['errors']]);
-        }
+        /* validate user via cirms api */
+        $cirmsApi = new CirmsApiController();
+        $cirmsResponse = $cirmsApi->userAuthentication($request);
+
+        /* check if username is not yet registered by the same group id and network */
         $usernameExistByGroup = User::select('username')->where('username', $request->username)->where('is_deleted', 0)->where('client_group_id', $clientGroupId)->get();
 
         if ($usernameExistByGroup->isNotEmpty()) {
@@ -212,7 +180,6 @@ class UserController extends Controller
                 'code' => 100,
             ]);
         }
-
         return response()->json([
             "errors" => [],
             "message" => "Successfully created.",
