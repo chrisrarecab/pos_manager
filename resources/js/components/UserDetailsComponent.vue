@@ -5,7 +5,9 @@
 
 <div class="card mx-auto" style="width: 60rem;">
     <div class="card-header">
-        <div class="card-title"><h4>Details</h4></div>
+        <!-- <div class="card-title"> -->
+            <h7 class="my-0">Details</h7>
+        <!-- </div> -->
     </div>
     <div class="card-body">
         <table class="table">
@@ -52,26 +54,36 @@
 </div>
     <br>
     <div class="card mx-auto" style="width: 60rem;">
-        <div class="card-header">
-            <div class="card-title">
-                <h4>Setting</h4>
-            </div>
+        <div class="card-header my-0">
+            <!-- <div class="card-title"> -->
+            <b-form-checkbox
+            v-model="allSelected"
+            :indeterminate="indeterminate"
+            @change="toggleAll"
+            >
+                <h7 class="my-0">Setting</h7>
+            </b-form-checkbox>
+            
+            <!-- </div> -->
         </div>
         <div class="card-body text-center">
+            
             <b-form-checkbox-group
                 id="setting-group"
                 v-model="settings_selected"
                 :options="settings_options"
             ></b-form-checkbox-group>
+            
             <!-- <div>Selected: <strong>{{ settings_selected }}</strong></div> -->
         </div>
     </div>
     <br>
     <div class="card mx-auto" style="width: 60rem;">
         <div class="card-header">
-            <div class="card-title">
-                <h4>User</h4>
-            </div>
+                <h7 class="my-0">User</h7>
+            <!-- <div class="card-title"> -->
+                <!-- <h7 class="my-0">User</h7> -->
+            <!-- </div> -->
         </div>
         <div class="card-body text-center">
             <b-form-checkbox-group
@@ -85,9 +97,9 @@
     <br>
     <div class="card mx-auto" style="width: 60rem;">
         <div class="card-header">
-            <div class="card-title">
-                <h4>Audit Trail</h4>
-            </div>
+            <!-- <div class="card-title"> -->
+                <h7 class="my-0">Audit Trail</h7>
+            <!-- </div> -->
         </div>
         <div class="card-body text-center">
             <b-form-checkbox-group
@@ -132,10 +144,9 @@ export default {
         username: '',
         fullname: '',
         password: '',
-        taggingSelected: [
-            
-        ],
+        taggingSelected: [],
         taggingOptions: [],
+        permissions_selected: [],
         settings_selected: [],
         settings_options: [
           { text: 'View', value: 101 },
@@ -158,6 +169,8 @@ export default {
           { text: 'Edit', value: 303 },
           { text: 'Delete', value: 304 }
         ],
+        allSelected: false,
+        indeterminate: false
       }
     },
     props: {
@@ -168,6 +181,44 @@ export default {
     }, 
     mounted(){
         this.displayDetails();
+    },
+    watch: {
+      settings_selected(newValue, oldValue) {
+        if (newValue.length === 0) {
+          this.indeterminate = false
+          this.allSelected = false
+        } else if (newValue.length === this.settings_options.length) {
+          this.indeterminate = false
+          this.allSelected = true
+        } else {
+          this.indeterminate = true
+          this.allSelected = false
+        }
+      },
+      user_selected(newValue, oldValue) {
+        if (newValue.length === 0) {
+          this.indeterminate = false
+          this.allSelected = false
+        } else if (newValue.length === this.user_options.length) {
+          this.indeterminate = false
+          this.allSelected = true
+        } else {
+          this.indeterminate = true
+          this.allSelected = false
+        }
+      },
+      audit_selected(newValue, oldValue) {
+        if (newValue.length === 0) {
+          this.indeterminate = false
+          this.allSelected = false
+        } else if (newValue.length === this.audit_options.length) {
+          this.indeterminate = false
+          this.allSelected = true
+        } else {
+          this.indeterminate = true
+          this.allSelected = false
+        }
+      },
     },
     methods: {
         displayDetails () {
@@ -187,6 +238,12 @@ export default {
                 this.getSelectedBranches();
             });  
         },
+        toggleAll(checked) {
+            // Store only the `value` of the flavours in the selected array
+            this.settings_selected = checked ? this.settings_options.map(f => f.value) : [];
+            this.user_selected = checked ? this.user_options.map(f => f.value) : [];
+            this.audit_selected =  checked ? this.audit_options.map(f => f.value) : [];
+        },
         getPermissions() {
             axios.get('/api/v1/userPermissionsApi',{ params: { detail: this.detail } }).then(res=>{
                 this.permissions = res.data.permissions;
@@ -201,8 +258,12 @@ export default {
                     } else if (code.charAt(0) == '3') {
                         this.audit_selected.push(item.code);
                     }
-                    
+                    // this.permissions_selected.push(item.code);
                 });
+                if(this.settings_selected.length == 4 && this.user_selected == 5 && this.audit_selected == 4){
+                    this.allSelected = true;
+                    // this.indeterminate = true;
+                }
                 // console.log(this.permissions_selected);
             });
         },

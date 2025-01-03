@@ -11,8 +11,8 @@ use App\Http\Controllers\Api\V1\UserBranchController;
 Route::prefix('v1')->group(function(){
 
     Route::post('/changeVat', [SuperadminToolFlagsController::class, 'store']);
-    Route::get('/changeVat/getPending', [SuperadminToolFlagsController::class,'show']);
-    Route::patch('/changeVat/processDone', [SuperadminToolFlagsController::class,'update']);
+    Route::post('/changeVat/getPending', [SuperadminToolFlagsController::class,'show']);
+    Route::post('/changeVat/processDone', [SuperadminToolFlagsController::class,'update']);
 
     Route::get('/userlistApi',[UserlistController::class, 'index']);
     Route::get('/userDetailsApi',[UserlistController::class, 'show']);
