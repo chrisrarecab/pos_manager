@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class pos_settings extends Model
 {
     use HasFactory;
-    protected $fillable = ['uuid','source','key', 'value', 'datemodified'];
+    protected $fillable = ['uuid','source','key', 'value', 'client_visible', 'setting_type', 'datemodified'];
 
     public $timestamps = false; 
 }

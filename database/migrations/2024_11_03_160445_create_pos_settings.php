@@ -16,7 +16,9 @@ return new class extends Migration
             $table->integer('source')->default('1');
             $table->string('key', 128)->default('');
             $table->string('value', 1024)->nullable();
-            $table->dateTime('datemodified')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->string('client_visible')->default(false); 
+            $table->string('setting_type')->default('1'); 
+            $table->dateTime('datemodified')->default(now());
 
             $table->primary(['uuid', 'source', 'key']);
         });
