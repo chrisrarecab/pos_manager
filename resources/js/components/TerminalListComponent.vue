@@ -328,50 +328,51 @@
                 const clientterminalUuidApi = {
                     uuid: clientTerminalUuids
                 };
-                const api1 = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalUuidApi, headers);
-                const api2 = axios.post('/api/v1/settings', clientterminalUuidApi, headers);
-
-                Promise.all([api1, api2])
+                const clientbaseData = axios.post(apiUrl + '/TerminalList/PosSettingsList', clientterminalUuidApi, headers);
+                const posmanagerData = axios.post('/api/v1/settings', clientterminalUuidApi, headers);
+                    
+                Promise.all([clientbaseData, posmanagerData])
                     .then(([res1, res2]) => {
-                        const apiData = res1.data;
-                        let posData = res2.data;
+                        const clientbaseData = res1.data;
+                        let posmanagerData = res2.data;
                         const state = [];
                         
-                        posData = posData.map(posEntry => {
-                            const findClientterminalId = this.items.find(item => item.uuid === posEntry.uuid);
+                        posmanagerData = posmanagerData.map(posmanagerEntry => {
+                            const findClientterminalId = this.items.find(item => item.uuid === posmanagerEntry.uuid);
                             return {
-                                ...posEntry,
+                                ...posmanagerEntry,
                                 clientterminalId: findClientterminalId ? findClientterminalId.id : null 
                             };
                         });
 
-                        apiData.forEach(apiEntry => {
-                            const matchedEntry = posData.find(posEntry => {
-                                return Number(apiEntry.clientterminalid) === Number(posEntry.clientterminalId) && 
-                                    apiEntry.key.trim().toLowerCase() === posEntry.key.trim().toLowerCase();
+                        clientbaseData.forEach(clientbaseEntry => {
+                            const matchedEntry = posmanagerData.find(posmanagerEntry => {
+                                return Number(clientbaseEntry.clientterminalid) === Number(posmanagerEntry.clientterminalId) && 
+                                    clientbaseEntry.key.trim().toLowerCase() === posmanagerEntry.key.trim().toLowerCase();
                             });
-                            const settings_date = apiEntry.settings_date || matchedEntry?.settings_date || 'N/A';
+                            const matchedEntryValue = matchedEntry?.value || '';
+                            const settings_date = clientbaseEntry.settings_date || matchedEntry?.settings_date || 'N/A';
                             if (matchedEntry) {
                                 this.loading = true;
-                                if (apiEntry.value !== matchedEntry.value) {
-                                    if (apiEntry.clientterminalid) {
+                                if (clientbaseEntry.value !== matchedEntryValue) {
+                                    if (clientbaseEntry.clientterminalid) {
                                         state.push({
-                                            clientterminalid: apiEntry.clientterminalid,
-                                            key: apiEntry.key,
-                                            apiValue: apiEntry.value,
-                                            posValue: matchedEntry.value,
+                                            clientterminalid: clientbaseEntry.clientterminalid,
+                                            key: clientbaseEntry.key,
+                                            cbPossettingsValue: clientbaseEntry.value,
+                                            pmPossettingsValue: matchedEntryValue,
                                             status: 'Outdated',  
                                             settings_date
-                                        });
+                                        }); 
                                     }
                                 }else{
-                                    if (apiEntry.value === matchedEntry.value) {
-                                        if (apiEntry.clientterminalid) {
+                                    if (clientbaseEntry.value === matchedEntryValue) {
+                                        if (clientbaseEntry.clientterminalid) {
                                             state.push({    
-                                                clientterminalid: apiEntry.clientterminalid,
-                                                key: apiEntry.key,
-                                                apiValue: apiEntry.value,
-                                                posValue: matchedEntry.value,
+                                                clientterminalid: clientbaseEntry.clientterminalid,
+                                                key: clientbaseEntry.key,
+                                                cbPossettingsValue: clientbaseEntry.value,
+                                                pmPossettingsValue: matchedEntryValue,
                                                 status: 'Updated',
                                                 settings_date  
                                             });
@@ -379,12 +380,12 @@
                                     }
                                 }
                             } else {
-                                if (apiEntry.clientterminalid) {
+                                if (clientbaseEntry.clientterminalid) {
                                     state.push({
-                                        clientterminalid: apiEntry.clientterminalid,
-                                        key: apiEntry.key,
-                                        apiValue: apiEntry.value,
-                                        posValue: null,
+                                        clientterminalid: clientbaseEntry.clientterminalid,
+                                        key: clientbaseEntry.key,
+                                        cbPossettingsValue: clientbaseEntry.value,
+                                        pmPossettingsValue: null,
                                         status: 'Outdated',
                                         settings_date
                                     });
@@ -409,7 +410,7 @@
                             status: diff.status,
                             settings_date: diff.settings_date 
                         }));
-                      
+      
                         // feed the results to this.items 
                         this.items.forEach(item => {
                             const statusEntry = statusArr.find(status => status.clientterminalid === item.id);
