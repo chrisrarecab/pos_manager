@@ -61,6 +61,22 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
+        
+        'mysql5' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL_MYSQL5'),
+            'host' => env('DB_HOST_MYSQL5', '127.0.0.1'),
+            'port' => env('DB_PORT_MYSQL5', '3306'),
+            'database' => env('DB_DATABASE_MYSQL5', 'nelsoft_clients'),
+            'username' => env('DB_USERNAME_MYSQL5', 'root'),
+            'password' => env('DB_PASSWORD_MYSQL5', '121586'),
+            'unix_socket' => env('DB_SOCKET_MYSQL5', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
 
         'mariadb' => [
             'driver' => 'mariadb',
