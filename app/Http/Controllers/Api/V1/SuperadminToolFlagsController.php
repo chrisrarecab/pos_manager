@@ -99,14 +99,14 @@ class SuperadminToolFlagsController extends Controller
                 "effectivityDate" =>  $data->date
             );
 
-            return json_encode($response);  
+            return response($response,200)->header('Content-Type', 'application/json'); 
         } else {
             $response = Array(
                 "id"    => 0,
                 "effectivityDate" =>  '0000-00-00'
             );
 
-            return json_encode($response);  
+            return response($response,200)->header('Content-Type', 'application/json');  
         }
     }
 

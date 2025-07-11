@@ -21,18 +21,29 @@ import '../css/app.css';
 const app = createApp({});
 app.use(BootstrapVue3);
 app.use(router);
+
 import CheckAuth from './components/auth/CheckAuth.vue';
 import Login from './components/auth/Login.vue';
 import Register from './components/auth/Register.vue';
 import RegisterCirms from './components/auth/RegisterCirms.vue';
 import Dashboard from './components/Dashboard.vue';
 import router from './router';
+
 app.component('session-component', CheckAuth);
 app.component('login', Login);
 app.component('register-core', Register);
 app.component('register-cirms', RegisterCirms);
 app.component('dashboard-component', Dashboard);
 
+import ExampleComponent from './components/ExampleComponent.vue';
+import UserListComponent from './components/UserListComponent.vue';
+import UserDetailsComponent from './components/UserDetailsComponent.vue';
+import UserBranchComponent from './components/UserBranchComponent.vue';
+
+app.component('example-component', ExampleComponent);
+app.component('user-list-component', UserListComponent);
+app.component('user-details-component', UserDetailsComponent);
+app.component('user-branch-component', UserBranchComponent);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
