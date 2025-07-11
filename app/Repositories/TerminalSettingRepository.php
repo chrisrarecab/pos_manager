@@ -24,8 +24,9 @@ class TerminalSettingRepository
         $result = [];
         foreach ($settings as $setting) {
             if (isset($setting['name']) && !empty($setting['name'])) {
-                $settingData = Setting::select('id', 'form_element')
+                $settingData = Setting::select('id', 'form_element', 'software_id')
                     ->where('name', $setting['name'])
+                    ->where('software_id', $setting['software_id'])
                     ->first();
             } 
             
@@ -70,7 +71,9 @@ class TerminalSettingRepository
                 'setting_id' => $setting_id,
                 'value' => $setting_value,
                 'original_value' => $setting['value'],
-                'form_element' => $settingData->form_element
+                'form_element' => $settingData->form_element,
+                'software_id' => $settingData->software_id
+                
             ];
         }
 
@@ -158,6 +161,10 @@ class TerminalSettingRepository
                 ]);
 
                 if (!empty($data['settings'])) {
+
+                    foreach ($data['settings'] as &$setting) {
+                        $setting['software_id'] = 2;
+                    }
                     $processed = $this->processSettings( $data['settings']);
                     $result = $processed['result'];
 
@@ -194,6 +201,9 @@ class TerminalSettingRepository
                 }
                
                 if (!empty($data['settings'])) {
+                    foreach ($data['settings'] as &$setting) {
+                        $setting['software_id'] = 1;
+                    }
                     $processed = $this->processSettings( $data['settings']);
                     $result = $processed['result'];
 
@@ -229,7 +239,7 @@ class TerminalSettingRepository
                 code: is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() <= 599
                     ? $e->getCode()
                     : 500,
-                data: []
+                data: $result
             );
 
         }
