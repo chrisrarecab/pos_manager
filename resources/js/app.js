@@ -8,10 +8,6 @@ import './bootstrap';
 import { createApp } from 'vue';
 import BootstrapVue3 from 'bootstrap-vue-3';
 
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
-import '../css/app.css';
-
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
  * registering components with the application instance so they are ready
@@ -50,10 +46,8 @@ app.component('user-list-component', UserListComponent);
 app.component('user-details-component', UserDetailsComponent);
 app.component('user-branch-component', UserBranchComponent);
 
-import ExampleComponent from './components/ExampleComponent.vue';
 import TerminalSettingsComponent from  './components/terminalSettings/TerminalSettingsComponent.vue';
 
-app.component('example-component', ExampleComponent);
 app.component('terminal-settings-component', TerminalSettingsComponent);
 /**
  * The following block of code may be used to automatically register your
