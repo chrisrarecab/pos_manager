@@ -33,3 +33,7 @@ Route::get('/userdetails', function (Illuminate\Http\Request $request) {
     return view('userdetails', ['detail' => $userId]);
 });
 
+Route::get('/pos/settings', function (Illuminate\Http\Request $request) {
+    $clientGroup = $request->query('detail', '0000');
+    return view('possettings', ['detail' => $clientGroup]);
+});

@@ -17,6 +17,11 @@ import '../css/app.css';
  * registering components with the application instance so they are ready
  * to use in your application's views. An example is included for you.
  */
+import '../css/app.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import 'vue-multiselect/dist/vue-multiselect.min.css';
 
 const app = createApp({});
 app.use(BootstrapVue3);
@@ -44,6 +49,12 @@ app.component('example-component', ExampleComponent);
 app.component('user-list-component', UserListComponent);
 app.component('user-details-component', UserDetailsComponent);
 app.component('user-branch-component', UserBranchComponent);
+
+import ExampleComponent from './components/ExampleComponent.vue';
+import TerminalSettingsComponent from  './components/terminalSettings/TerminalSettingsComponent.vue';
+
+app.component('example-component', ExampleComponent);
+app.component('terminal-settings-component', TerminalSettingsComponent);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
