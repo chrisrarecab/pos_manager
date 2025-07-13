@@ -19,7 +19,6 @@ class ClientTerminalDetailRepository
             ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
             ->where('CG.id', $id)
             ->where('CD.branchname', '!=', '')
-            ->where('CTD.pos_type', '<>', 10)
             ->where('CTD.referenceno', '<>', 0)
             ->where('CTD.show', '<>', 0)
             ->where('CTD.status', '<>', 0)

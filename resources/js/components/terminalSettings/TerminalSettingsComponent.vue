@@ -342,7 +342,8 @@
 			:icons="ICON_PATHS"
             :settings="tabData[tab.id]"
             :tooltipVisibility="tooltipVisibility"
-			  v-model:settings="settings"
+			v-model:settings="settings"
+ 			@update-setting="applySettingChange"
           />
         </b-tab>
       </b-tabs>
@@ -718,14 +719,29 @@ const submitTerminalSettings = async (saveType) => {
 		isLoadingCopy.value = false;	
 	}
 };
+
 // Disable terminal dropdown when there's changes
 const hasUnsaved = computed(() => changedCount.value > 0);
+const applySettingChange = ({ id, value }) => {
+  const setting = Object.values(tabData).flat().find(s => s.id === id);
+  if (setting) {
+    setting.value = value;
+  }
+};
+
 // For Save Changes button indicator
-const changedCount = computed(() =>
-	Object.values(tabData).flat().filter(setting =>
-		setting.value !== (originalTabData?.value?.[setting.id] ?? null)
-	).length
-);
+const changedCount = computed(() => {
+  return Object.values(tabData).flat().filter(setting => {
+    const original = originalTabData?.value?.[setting.id];
+    
+    if (Array.isArray(setting.value) && Array.isArray(original)) {
+      return JSON.stringify([...setting.value].sort()) !== JSON.stringify([...original].sort());
+    }
+
+    return setting.value !== original;
+  }).length;
+});
+
 // For tab indicator
 const hasUnsavedChanges = (tabId) => {
 	const currentSettings = tabData[tabId] || [];

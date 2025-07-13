@@ -9,9 +9,7 @@ class TerminalSetting extends Model
 {
     use HasFactory;
     protected $table = 'terminal_settings';
-
     public $timestamps = false;
-    protected $primaryKey = null; 
     
     protected $fillable = [
         'id',
