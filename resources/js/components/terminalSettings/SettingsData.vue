@@ -69,7 +69,7 @@
                  <div v-else-if="setting.form_element === 'dropdown'" class="mb-3 mt-2 ps-1">
                     <select class="custom-select" v-model="setting.value" disabled>
                         <option v-for="(option, i) in setting.options" :key="i" :value="option.id">
-                            {{ option.value }}
+                            {{ option.name }}
                         </option>
                     </select>
                  </div>
@@ -125,21 +125,19 @@ const formatDate = (date) => {
 
 
 const localSettings = reactive(
-    props.settings.map(setting => {
-        if (setting.form_element === 'multi_select_dropdown') {
-            const selectedIds = Array.isArray(setting.value) ?
-                setting.value :
-                typeof setting.value === 'string' ?
-                setting.value.split(',').map(Number) : [];
+  props.settings.map(setting => {
+    let value = setting.value;
 
-            return {
-                ...setting,
-                value: setting.options.filter(opt => selectedIds.includes(opt.id))
-            };
-        }
+    if (setting.form_element === 'multi_select_dropdown') {
+      const selectedIds = Array.isArray(value) ? value  : typeof value === 'string' ? value.split(',').map(Number) : [];
+      value = setting.options.filter(opt => selectedIds.includes(opt.id));
+    }
 
-        return { ...setting };
-    })
+    return reactive({
+      ...setting,
+      value
+    });
+  })
 );
 
 const handleTag = (setting, newTag) => {
@@ -151,16 +149,18 @@ const handleTag = (setting, newTag) => {
 };
 
 const emit = defineEmits(['update:settings']);
-watch(
-    () => localSettings.map(setting => ({
-        id: setting.id,
-        value: setting.form_element === 'multi_select_dropdown' ?
-            setting.value.map(v => v.id) : setting.value
-    })),
-    (newValues) => {
-        emit('update:settings', newValues);
-    }, { deep: true }
-);
+
+watch(localSettings, (newSettings) => {
+  newSettings.forEach(setting => {
+    emit('update-setting', {
+      id: setting.id,
+      value: setting.form_element === 'multi_select_dropdown'
+        ? setting.value.map(v => v.id).join(',')
+        : setting.value
+    });
+  });
+}, { deep: true });
+
 </script>
 
 

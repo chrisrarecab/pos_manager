@@ -45,6 +45,12 @@ class StoreTerminalSettingRequest extends FormRequest
             'settings' => 'nullable|array',
             'settings.*.name' => 'required_with:settings|string',
             'settings.*.value' => 'nullable',
+            'settings.*.type' => 'nullable',
+
+            'settings.*.options' => 'nullable|array',
+            'settings.*.options.*.option_name' => 'required_with:settings|string',
+            'settings.*.options.*.option_value' => 'required_with:settings|string',
+
         ];
     }
 }

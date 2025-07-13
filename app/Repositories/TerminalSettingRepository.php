@@ -18,7 +18,12 @@ class TerminalSettingRepository
     {
         $this->clientTerminalDetails = $details;
     }
-
+    
+    /*
+    Handle settings,
+    Converts value to setting_option_id,
+    Creates the setting option if it doesn't exist.
+    */
     public function processSettings(array $settings): array
     {
         $result = [];
@@ -34,46 +39,92 @@ class TerminalSettingRepository
                 throw new \Exception("Setting not found for: " . json_encode($setting));
             }
 
-            $setting_id = $settingData->id;
-            switch ($settingData->form_element) {
+            $settingId = $settingData->id;
+            $formElement = $settingData->form_element;
+            $softwareId= $settingData->software_id;
+
+            if(!empty($setting['type']) && $setting['type'] == 'boolean'){
+                $booleanOptions = [
+                        ['option_name' => 'True', 'option_value' => '1'],
+                        ['option_name' => 'False', 'option_value' => '0'],
+                    ];
+
+                foreach ($booleanOptions as $opt) {
+                    $existingOption = SettingOption::where('setting_id', $settingId)
+                        ->where('value', $opt['option_value'])
+                        ->first();
+
+                    if (!$existingOption) {
+                        SettingOption::create([
+                            'setting_id' => $settingId,
+                            'name' => $opt['option_name'],
+                            'value' => $opt['option_value']
+                        ]);
+                    } 
+                }
+            }
+                
+            if(!empty($setting['options']) && is_array($setting['options'])){
+                foreach($setting['options'] as $opt){
+                    $optionName = $opt['option_name'] ?? null;
+                    $optionValue = $opt['option_value'] ?? null;
+
+                    if ($optionValue == null || $optionName == null){
+                        continue;
+                    }
+
+                    $existingOption = SettingOption::where('setting_id', $settingId)
+                        ->where('value', $optionValue)
+                        ->first();
+                
+                    if (!$existingOption) {
+                        SettingOption::create([
+                            'setting_id' => $settingId,
+                            'name' => $optionName,
+                            'value'=> $optionValue
+                        ]);
+                    }
+                }
+
+            }
+
+            switch ($formElement) {
                 case 'radio_button':
-                     $setting_value = SettingOption::where('value', $setting['value'])
-                        ->where('setting_id', $setting_id)
+                     $settingValue = SettingOption::where('value', $setting['value'])
+                        ->where('setting_id', $settingId)
                         ->value('id');
                     break;
                 case 'dropdown':
-                    $setting_value = SettingOption::where('value', $setting['value'])
-                        ->where('setting_id', $setting_id)
+                    $settingValue = SettingOption::where('value', $setting['value'])
+                        ->where('setting_id', $settingId)
                         ->value('id');
-                    break;
+                    break;  
                 case 'multi_select_dropdown':
                    $values = is_array($setting['value']) ? $setting['value'] : [$setting['value']];
 
                     $optionIds = SettingOption::whereIn('value', $values)
-                        ->where('setting_id', $setting_id)
+                        ->where('setting_id', $settingId)
                         ->pluck('id')
                         ->toArray();
 
-                    $setting_value = implode(',', $optionIds); 
+                    $settingValue = implode(',', $optionIds); 
                     break;
                 case 'text':
-                    $setting_value = $setting['value'];
+                    $settingValue = $setting['value'];
                     break;
                 case 'text_area':
-                    $setting_value = $setting['value'];
+                    $settingValue = $setting['value'];
                     break;
                 default:
-                    $setting_value = $setting['value'];
+                    $settingValue = $setting['value'];
                     break;
             }
 
             $result[] = [
-                'setting_id' => $setting_id,
-                'value' => $setting_value,
+                'setting_id' => $settingId,
+                'value' => $settingValue,
                 'original_value' => $setting['value'],
-                'form_element' => $settingData->form_element,
-                'software_id' => $settingData->software_id
-                
+                'form_element' => $formElement
             ];
         }
 
@@ -84,10 +135,10 @@ class TerminalSettingRepository
 
     public function fetchTerminalSettingsRepo(Request $request)
     {
-        $client_terminal_id = $request->query('client_terminal_id');
+        $clientTerminalId = $request->query('client_terminal_id');
 
-        $settings = Setting::whereHas('TerminalSetting', function ($query) use ($client_terminal_id) {
-            $query->where('client_terminal_id', $client_terminal_id);
+        $settings = Setting::whereHas('TerminalSetting', function ($query) use ($clientTerminalId) {
+            $query->where('client_terminal_id', $clientTerminalId);
         })
         ->where('is_deleted', 0)
         ->with(['options', 'issues', 'terminalSetting', 'user:id,full_name'])
@@ -95,22 +146,22 @@ class TerminalSettingRepository
         ->map(function ($setting) {
             $ts = $setting->terminalSetting;
 
-            $raw_value = $ts?->value;
-            $resolved_value = $raw_value;
+            $rawValue = $ts?->value;
+            $resolvedValue = $rawValue;
 
             switch ($setting->form_element) {
                 case 'dropdown':
-                    $resolved_value = $setting->options->firstWhere('id', (int)$raw_value)?->id ?? null;
+                    $resolvedValue = $setting->options->firstWhere('id', (int)$rawValue)?->id ?? null;
                     break;
                 case 'radio_button':
-                    $resolved_value = $setting->options->firstWhere('id', (int)$raw_value)?->id ?? null;
+                    $resolvedValue = $setting->options->firstWhere('id', (int)$rawValue)?->id ?? null;
                     break;
                 case 'multi_select_dropdown':
-                    $values = $raw_value ? explode(',', $raw_value) : [];
-                    $resolved_value = array_map('intval', $values); 
+                    $values = $rawValue ? explode(',', $rawValue) : [];
+                    $resolvedValue = array_map('intval', $values); 
                     break;
                 default:
-                    $resolved_value;
+                    $resolvedValue;
                     break;
 
             }
@@ -135,8 +186,8 @@ class TerminalSettingRepository
                 'terminal_setting'   => $ts,
                 'user'               => $setting->user,
 
-                'raw_value'          => $raw_value,
-                'value'              => $resolved_value,
+                'raw_value'          => $rawValue,
+                'value'              => $resolvedValue,
             ];
         });
         
@@ -146,13 +197,13 @@ class TerminalSettingRepository
     // store uses name and value whlie update uses setting id and setting option id
     public function storeTerminalSettingsRepo(array $data): RepositoryResponse
     {
-        $client_terminal_id = '';
-        $cirms_client_terminal_id = '';
+        $clientTerminalId = '';
+        $cirmsClientTerminalId = '';
         $result = [];
 
         try {
             if ( $data['terminalNo'] <> 0 && $data['posType'] == 10 && !empty( $data['clientId']) && !empty( $data['locationId'])) {
-                $cirms_client_terminal_id = implode('-', [
+                $cirmsClientTerminalId = implode('-', [
                      $data['clientGroupId'],
                      $data['clientNetworkId'],
                      $data['clientBranchId'],
@@ -165,13 +216,14 @@ class TerminalSettingRepository
                     foreach ($data['settings'] as &$setting) {
                         $setting['software_id'] = 2;
                     }
+
                     $processed = $this->processSettings( $data['settings']);
                     $result = $processed['result'];
 
                     foreach ($result as $row) {
                         TerminalSetting::updateOrInsert(
                             [
-                                'cirms_client_terminal_id' => $cirms_client_terminal_id,
+                                'cirms_client_terminal_id' => $cirmsClientTerminalId,
                                 'setting_id' => $row['setting_id'],
                             ],
                             [
@@ -249,14 +301,14 @@ class TerminalSettingRepository
     public function updateTerminalSettingsRepo(Request $request) 
     {
         try {
-            $client_terminal_id = $request->client_terminal_id;
+            $clientTerminalId = $request->client_terminal_id;
             $settings = $request->settings;
-        
+            
             if (!empty($settings)) {
                 foreach ($settings as $row) {
                     TerminalSetting::updateOrInsert(
                         [
-                            'client_terminal_id' => $client_terminal_id,
+                            'client_terminal_id' => $clientTerminalId,
                             'setting_id' => $row['setting_id'],
                         ],
                         [
@@ -296,11 +348,11 @@ class TerminalSettingRepository
 
     public function applySettingsToMultipleTerminalsRepo(Request $request)
     {
-        $client_terminal_ids = $request->client_terminal_ids;
+        $clientTerminalIds = $request->client_terminal_ids;
         $settings = $request->settings;
 
         try {
-            if (!is_array($client_terminal_ids) || empty($client_terminal_ids)) {
+            if (!is_array($clientTerminalIds) || empty($clientTerminalIds)) {
                 return new RepositoryResponse(
                     success: false,
                     message: 'No terminal IDs provided.',
@@ -320,11 +372,11 @@ class TerminalSettingRepository
                 );
             }
 
-            foreach ($client_terminal_ids as $client_terminal_id) {
+            foreach ($clientTerminalIds as $clientTerminalId) {
                 foreach ($settings as $row) {
                     TerminalSetting::updateOrInsert(
                         [
-                            'client_terminal_id' => $client_terminal_id,
+                            'client_terminal_id' => $clientTerminalId,
                             'setting_id' => $row['setting_id'],
                         ],
                         [
@@ -342,7 +394,7 @@ class TerminalSettingRepository
                 error: [],
                 code: 200,
                 data: [
-                    'terminal_ids' => $client_terminal_ids,
+                    'terminal_ids' => $clientTerminalIds,
                     'settings_applied' => $settings
                 ]
             );
