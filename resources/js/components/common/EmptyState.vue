@@ -17,8 +17,6 @@
 </template>
   
 <script setup>
-import { defineProps, defineEmits } from 'vue'
-
 const emit = defineEmits(['action-click'])
 
 const props = defineProps({

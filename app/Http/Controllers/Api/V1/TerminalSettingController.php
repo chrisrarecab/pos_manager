@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\TerminalSettings\StoreTerminalSettingRequest;
+use App\Http\Requests\StoreTerminalSettingRequest;
 use App\Repositories\ClientTerminalDetailRepository;
 use App\Repositories\TerminalSettingRepository;
 use App\DataTransferObjects\RepositoryResponse;
