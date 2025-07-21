@@ -20,10 +20,9 @@ class StoreTerminalSettingRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'isSuccessful' => false,
+            'values' => null,
             'message' => 'Validation failed',
-            'error' => $validator->errors(),
-            'code' => 422,
-            'settings' => [],
+            'errors' => $validator->errors(),
         ], 422));
     }
     /**
@@ -47,9 +46,9 @@ class StoreTerminalSettingRequest extends FormRequest
             'settings.*.value' => 'nullable',
             'settings.*.type' => 'nullable',
 
-            'settings.*.options' => 'nullable|array',
-            'settings.*.options.*.option_name' => 'required_with:settings|string',
-            'settings.*.options.*.option_value' => 'required_with:settings|string',
+            // 'settings.*.options' => 'nullable|array',
+            // 'settings.*.options.*.option_name' => 'required_with:settings|string',
+            // 'settings.*.options.*.option_value' => 'required_with:settings|string',
 
         ];
     }

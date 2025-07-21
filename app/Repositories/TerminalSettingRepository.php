@@ -36,57 +36,35 @@ class TerminalSettingRepository
             } 
             
             if (!$settingData) {
-                throw new \Exception("Setting not found for: " . json_encode($setting));
+                return RepositoryResponse::failure('Setting lookup failed.', 'Setting not found for: ' . json_encode($setting), 404);
             }
 
             $settingId = $settingData->id;
             $formElement = $settingData->form_element;
             $softwareId= $settingData->software_id;
-
-            if(!empty($setting['type']) && $setting['type'] == 'boolean'){
-                $booleanOptions = [
-                        ['option_name' => 'True', 'option_value' => '1'],
-                        ['option_name' => 'False', 'option_value' => '0'],
-                    ];
-
-                foreach ($booleanOptions as $opt) {
-                    $existingOption = SettingOption::where('setting_id', $settingId)
-                        ->where('value', $opt['option_value'])
-                        ->first();
-
-                    if (!$existingOption) {
-                        SettingOption::create([
-                            'setting_id' => $settingId,
-                            'name' => $opt['option_name'],
-                            'value' => $opt['option_value']
-                        ]);
-                    } 
-                }
-            }
                 
-            if(!empty($setting['options']) && is_array($setting['options'])){
-                foreach($setting['options'] as $opt){
-                    $optionName = $opt['option_name'] ?? null;
-                    $optionValue = $opt['option_value'] ?? null;
+            // if(!empty($setting['options']) && is_array($setting['options'])){
+            //     foreach($setting['options'] as $opt){
+            //         $optionName = $opt['option_name'] ?? null;
+            //         $optionValue = $opt['option_value'] ?? null;
 
-                    if ($optionValue == null || $optionName == null){
-                        continue;
-                    }
+            //         if ($optionValue == null || $optionName == null){
+            //             continue;
+            //         }
 
-                    $existingOption = SettingOption::where('setting_id', $settingId)
-                        ->where('value', $optionValue)
-                        ->first();
+            //         $existingOption = SettingOption::where('setting_id', $settingId)
+            //             ->where('value', $optionValue)
+            //             ->first();
                 
-                    if (!$existingOption) {
-                        SettingOption::create([
-                            'setting_id' => $settingId,
-                            'name' => $optionName,
-                            'value'=> $optionValue
-                        ]);
-                    }
-                }
-
-            }
+            //         if (!$existingOption) {
+            //             SettingOption::create([
+            //                 'setting_id' => $settingId,
+            //                 'name' => $optionName,
+            //                 'value'=> $optionValue
+            //             ]);
+            //         }
+            //     }
+            // }
 
             switch ($formElement) {
                 case 'radio_button':
@@ -195,7 +173,7 @@ class TerminalSettingRepository
     }
 
     // store uses name and value whlie update uses setting id and setting option id
-    public function storeTerminalSettingsRepo(array $data): RepositoryResponse
+    public function storeTerminalSettingsRepo(array $data)
     {
         $clientTerminalId = '';
         $cirmsClientTerminalId = '';
@@ -245,11 +223,11 @@ class TerminalSettingRepository
                 );
 
                 if ($terminal && $terminal->pos_type == 10) {
-                    throw new \Exception("Cannot save settings: Terminal details belong to CIRMS. Please specify both location_id and client_id.");
+                    return RepositoryResponse::failure( 'Request failed.', 'Terminal details belong to CIRMS. Please specify both location_id and client_id.', 400);
                 }
                 
                 if (!$terminal || $data['terminalNo'] == 0) {
-                    throw new \Exception("Client terminal not found.");
+                    return RepositoryResponse::failure( 'Request failed.', 'Client terminal not found.', 404);
                 }
                
                 if (!empty($data['settings'])) {
@@ -275,25 +253,9 @@ class TerminalSettingRepository
                     }
                 }
             }
-            return new RepositoryResponse(
-                success: true,
-                message: 'Terminal settings saved successfully.',
-                error: [],
-                code: 200,
-                data: []
-            );
-
+            return RepositoryResponse::success("Terminal settings saved successfully.");
         } catch (\Throwable $e) {
-            return new RepositoryResponse(
-                success: false,
-                message: 'Something went wrong.',
-                error: $e->getMessage(),
-                code: is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() <= 599
-                    ? $e->getCode()
-                    : 500,
-                data: $result
-            );
-
+            return RepositoryResponse::failure('Something went wrong.', $e->getMessage(), 500);
         }
 
     }
@@ -318,31 +280,12 @@ class TerminalSettingRepository
                         ]
                     );
                 }
-                 return new RepositoryResponse(
-                    success: true,
-                    message: 'Terminal settings saved successfully.',
-                    error: [],
-                    code: 200,
-                    data: []
-                );
+                
+                return RepositoryResponse::success("Terminal settings saved successfully.");
             }
-            return new RepositoryResponse(
-                success: false,
-                message: 'No settings provided.',
-                error: [],
-                code: 400,
-                data: []
-            );
+            return RepositoryResponse::failure('Request failed.', 'No settings provided.', 400);
         } catch (\Throwable $e) {
-            return new RepositoryResponse(
-                success: false,
-                message: 'Something went wrong.',
-                error: $e->getMessage(),
-                code: is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() <= 599
-                    ? $e->getCode()
-                    : 500,
-                data: []
-            );
+            return RepositoryResponse::failure('Something went wrong.', $e->getMessage(), 500);
         }
     }
 
@@ -353,23 +296,11 @@ class TerminalSettingRepository
 
         try {
             if (!is_array($clientTerminalIds) || empty($clientTerminalIds)) {
-                return new RepositoryResponse(
-                    success: false,
-                    message: 'No terminal IDs provided.',
-                    error: [],
-                    code: 400,
-                    data: []
-                );
+                return RepositoryResponse::failure('Request failed.', 'No terminal IDs provided.', 400);
             }
 
             if (empty($settings)) {
-                return new RepositoryResponse(
-                    success: false,
-                    message: 'No settings provided.',
-                    error: [],
-                    code: 400,
-                    data: []
-                );
+                return RepositoryResponse::failure('Request failed.', 'No settings provided.', 400);
             }
 
             foreach ($clientTerminalIds as $clientTerminalId) {
@@ -388,27 +319,23 @@ class TerminalSettingRepository
                 }
             }
 
-            return new RepositoryResponse(
-                success: true,
-                message: 'Settings applied to multiple terminals successfully.',
-                error: [],
-                code: 200,
-                data: [
-                    'terminal_ids' => $clientTerminalIds,
-                    'settings_applied' => $settings
-                ]
-            );
+            return RepositoryResponse::success('Settings applied to multiple terminals successfully.', [
+                'terminal_ids' => $clientTerminalIds,
+                'settings_applied' => $settings
+            ]);
+            // return new RepositoryResponse(
+            //     success: true,
+            //     message: 'Settings applied to multiple terminals successfully.',
+            //     error: [],
+            //     code: 200,
+            //     data: [
+            //         'terminal_ids' => $clientTerminalIds,
+            //         'settings_applied' => $settings
+            //     ]
+            // );
 
         } catch (\Throwable $e) {
-            return new RepositoryResponse(
-                success: false,
-                message: 'Something went wrong.',
-                error: $e->getMessage(),
-                code: is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() <= 599
-                    ? $e->getCode()
-                    : 500,
-                data: []
-            );
+            return RepositoryResponse::failure('Something went wrong.', $e->getMessage(), 500);
         }
     }
 
