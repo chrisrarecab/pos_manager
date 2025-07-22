@@ -7,7 +7,7 @@
 @section('content')
 
 <div class="container">
-    @if ($source_project =='core')  
+    @if ($software =='POS-CORE')  
         <register-core :secret="{{ json_encode($secret) }}"></register-core>
     @else
         <register-cirms></register-cirms>

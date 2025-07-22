@@ -10,7 +10,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTerminalSettingRequest;
 use App\Repositories\ClientTerminalDetailRepository;
 use App\Repositories\TerminalSettingRepository;
-use App\DataTransferObjects\RepositoryResponse;
 
 use App\Models\Setting;
 use App\Models\SettingTab;
@@ -40,11 +39,10 @@ class TerminalSettingController extends Controller
         
         return response()->json([
             'isSuccessful' => $response->success,
+            'values' => $response->values ?? null,
             'message' => $response->message,
-            'error' => $response->error,
-            'code' => $response->code,
-            'settings' => $response->data
-        ], $response->code);
+            'errors' => $response->error ?? [],
+        ],  $response->statusCode);
     }
 
     public function fetchTerminalSettingsTabs() 
@@ -64,11 +62,10 @@ class TerminalSettingController extends Controller
        $response = $this->terminalSettingRepo->updateTerminalSettingsRepo($request);
         return response()->json([
             'isSuccessful' => $response->success,
+            'values' => $response->values ?? null,
             'message' => $response->message,
-            'error' => $response->error,
-            'code' => $response->code,
-            'settings' => $response->data
-        ], $response->code);
+            'errors' => $response->error ?? [],
+        ],  $response->statusCode);
     }
 
     public function applySettingsToMultipleTerminals(Request $request) 
@@ -76,11 +73,10 @@ class TerminalSettingController extends Controller
        $response = $this->terminalSettingRepo->applySettingsToMultipleTerminalsRepo($request);
         return response()->json([
             'isSuccessful' => $response->success,
+            'values' => $response->values ?? null,
             'message' => $response->message,
-            'error' => $response->error,
-            'code' => $response->code,
-            'settings' => $response->data
-        ], $response->code);
+            'errors' => $response->error ?? [],
+        ],  $response->statusCode);
     }
 
 }

@@ -4,8 +4,7 @@
 
 @section('content')
 <div class="container">
-    <session-component></session-component>
-    <sample-component></sample-component>
+    <example-component></example-component>
 </div>
 
 @endsection
