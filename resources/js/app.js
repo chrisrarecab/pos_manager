@@ -40,6 +40,7 @@ import ExampleComponent from './components/ExampleComponent.vue';
 import UserListComponent from './components/UserListComponent.vue';
 import UserDetailsComponent from './components/UserDetailsComponent.vue';
 import UserBranchComponent from './components/UserBranchComponent.vue';
+import ProjectToolsComponent from './components/projectTools/ProjectTools.vue';
 
 app.component('example-component', ExampleComponent);
 app.component('user-list-component', UserListComponent);
@@ -49,6 +50,7 @@ app.component('user-branch-component', UserBranchComponent);
 import TerminalSettingsComponent from  './components/terminalSettings/TerminalSettingsComponent.vue';
 
 app.component('terminal-settings-component', TerminalSettingsComponent);
+app.component('project-tools-component', ProjectToolsComponent);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

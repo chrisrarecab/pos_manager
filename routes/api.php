@@ -56,6 +56,14 @@ Route::prefix('v1')->group(function () {
     });
 });
 
+Route::controller(ClientBaseApiController::class)->group(function () {
+    Route::get('/clientbase/group/list', 'getClientGroupList');
+    Route::get('/clientbase/network/list/{id}', 'getClientNetworkList');
+    Route::get('/clientbase/branch/list/{id}', 'getClientBranchList');
+    Route::get('/clientbase/terminal/list/{id}', 'getClientTerminalList');
+    Route::post('/clientbase/terminal/cancel-ptu/{id}', 'postCancelPosPTU');
+});
+
 Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'registerBySecretKey');
     Route::post('/login', 'login');

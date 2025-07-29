@@ -32,3 +32,5 @@ Route::get('/pos/settings', function (Request $request) {
     $clientGroup = $request->query('detail', '0000');
     return view('possettings', ['detail' => $clientGroup]);
 });
+
+Route::get('/project/tools', function () {  return view('projecttools'); });
