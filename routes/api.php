@@ -21,6 +21,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/processDone', 'update');
     });
 
+    // Cancel PTU
+    Route::controller(SuperadminToolFlagsController::class)->prefix('cancelPTU')->group(function () {
+        Route::post('/', 'storeCancelPTU');
+        Route::post('/getPending', 'getCancelPTU');
+        Route::post('/processDone', 'updateValue');
+    });
+
     // User List
     Route::controller(UserlistController::class)->group(function () {
         Route::get('/userlistApi', 'index');

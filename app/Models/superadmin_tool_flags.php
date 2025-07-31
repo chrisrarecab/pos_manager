@@ -9,7 +9,7 @@ class superadmin_tool_flags extends Model
 {
     use HasFactory;
     
-    protected $fillable = ['clientgroupid','networkid','branchid', 'terminalno', 'meta_data'];
+    protected $fillable = ['clientgroupid','networkid','branchid', 'terminalno', 'meta_data', 'reference_number'];
     protected $casts = [
         'meta_data' => 'array'
     ];

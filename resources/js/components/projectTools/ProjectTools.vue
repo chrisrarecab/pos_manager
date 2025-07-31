@@ -1,16 +1,19 @@
 <template>
     <div>
-        <b-button @click="cancelPTUModal=true">Cancel PTU</b-button>
+        <div class="btn-icon" @click="cancelPTUModal=true">
+            <img src="/resources/images/no-screen.png"></img>
+            <label>Cancel PTU</label>
+        </div>
+        <!--<b-button @click="cancelPTUModal=true">Cancel PTU</b-button>-->
         <Modal v-model="cancelPTUModal" title="Cancel PTU" size="m"
         :hideFooter ="!showFooter"
         :isLoading="isSubmitting"
         @close="closeModal()">
             <MultiStepForm ref="multiStepRefCancelPTU"
-						:stepLabels="['Select Terminal', 'Confirm Request', 'Process']"
+						:stepLabels="['Select Terminal', 'Reference Number', 'Confirmation']"
                         :key="cancelPTUModal ? 'open' : 'closed'"
-						@finished="showFooter = false"
-      					@stepBack="showFooter = false"
-						@reset="showFooter = false">
+      					@stepBack="showFooter=false, alertMessage=false, checkBIR=false"
+						@reset="">
 
                 <template v-slot:step1>
                     <span>Client Group:</span>
@@ -35,30 +38,29 @@
                     </select>
                 </template>
                 <template v-slot:step2>
-                    <p><input v-model="checkBIR" type="checkbox">{{ textCheckBIR }}</p>
-                    <p>Request reference/ticket number: <input v-model="requestReferenceNo" :disabled="!checkBIR" class="reference-no-input" maxlength="7" type="text"></p>
+                    <p>Request reference/ticket number: <input v-model="requestReferenceNo" class="reference-no-input" maxlength="7" type="text"></p>
                 </template>
                 <template v-slot:step3>
-                    <!-- 
-                    <p>Client Group Id: {{ groupSelect }}</p>
-                    <p>Client Network Id: {{ networkSelect }} </p>
-                    <p>Client Branch Id: {{ branchSelect }}</p>
-                    <p>Client Terminal Id: {{ terminalSelect }}</p>
-                    -->
-                    <div style="height: 70px">
+                    <div>
+                        <p><input v-model="checkBIR" type="checkbox">{{ textCheckBIR }}</p>
+                    </div>
+                    <div>
                         <b-alert v-show="alertMessage.length" v-model="alert" variant="danger">
                             <p style="text-align: center">{{ alertMessage }}</p>
-                        </b-alert></div>
-                    <div style="text-align: center; padding: 20px">
+                        </b-alert>
+                    </div>
+                    <div class="submit-form">
                         <button class="btn btn-success" @click="submitCancelPTU()" :disabled="!checkBIR">
                             <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             {{ isSubmitting ? 'Requesting...' : 'Submit' }}
                         </button>
                     </div>
-                    
                 </template>
             </MultiStepForm>
-            <ToastNotification 
+        </Modal>
+    </div>
+    <div>
+        <ToastNotification 
   				v-if="showToast"
 				ref="toastRef"
 				:title="toastTitle"
@@ -66,10 +68,8 @@
 				:show="showToast"
 				:type="toastType"
 				@close="showToast = false"
-			/>
-        </Modal>
+        />
     </div>
-    
     
 </template>
 
@@ -81,6 +81,7 @@ import MultiStepForm from '/resources/js/components/common/MultiStep.vue';
 import GroupList from '../projectTools/GroupList.vue';
 
 const cancelPTUModal = ref(false),
+    currentStep = ref(1),
     alert = ref(true),
     alertMessage = ref(''),
     isLoading = ref(false),
@@ -130,7 +131,20 @@ const closeModal = () => {
 	cancelPTUModal.value = false;
     showFooter.value = false;
     alertMessage.value = '';
+    checkBIR.value = false;
+    requestReferenceNo.value = '';
+    groupSelect.value = '';
+    networkSelect.value = '';
+    branchSelect.value = '';
+    terminalSelect.value = '';
 };
+
+const nextProgres = () => {
+    if (requestReferenceNo.length) {
+        
+    }
+    currentStep++;
+}
 
 const fetchNetworkList = async () => {
 	if (groupSelect.value == '' || groupSelect.value == null) {
@@ -199,32 +213,49 @@ const fetchTerminalList = async () => {
 };
 
 const submitCancelPTU = async () => {
+    alertMessage.value = '';
     if (terminalSelect.value == '' || terminalSelect.value == '0') {
         console.error("No terminal detail selected.");
         showBootstrapToast("Please select a terminal from client details.", "Error");
         alertMessage.value = 'No terminal detail selected.';
         return;
     }
-    var data = [];
-    data['clientGroupId'] = groupSelect.value;
-    data['clientNetworkId'] = networkSelect.value;
-    data['clientBranchId'] = branchSelect.value;
-    data['clientTerminalId'] = terminalSelect.value;
-    data['requestReferenceNo'] = requestReferenceNo.value;
-    console.log(data);
-    isSubmitting.value = true;
+
+    let formdata = {
+        clientgroupid: groupSelect.value,
+        networkid: networkSelect.value,
+        branchid: branchSelect.value,
+        terminalno: terminalSelect.value,
+        reference_number: requestReferenceNo.value
+    };
+    isSubmitting.value = true
+
     const response = await axios.post(`/api/clientbase/terminal/cancel-ptu/` + terminalSelect.value);
     if (response.data) {
-        console.log(response.data);
         const result = response.data;
         if (! result.isSuccessful) {
             const error = result.error;
             showBootstrapToast(error, "Error");
             alertMessage.value = error;
         }
+        else {
+            axios.post(`/api/v1/cancelPTU`, formdata)
+            .then(response => {
+                if (response.data.isSuccessful) {
+                    statusMessage.value = response.data.message;
+                }
+                isSubmitting.value = false;
+            })
+            .catch(error => {
+                let errors = error.response.data.errors;
+                Object.values(errors).forEach(val => {
+                    alertMessage.value += val + "\n";
+                });
+                isSubmitting.value = false;
+            });
+        }
         isSubmitting.value = false;
     }
-    //closeModal();
 };
 
 </script>
@@ -238,6 +269,32 @@ const submitCancelPTU = async () => {
         margin: auto;
         text-align: left;
         padding: 2px;
-        width: 70px;
+        width: 100px;
     }
+    .submit-form {
+        text-align: center;
+        padding-top: 15px;
+    }
+    .submit-form button {
+        width: 200px;
+    }
+    .btn-icon {
+        border: 3px solid black;
+        width: 120px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+    }
+    .btn-icon:hover {
+        background-color: rgba(165, 126, 0, 0.3);
+    }
+    .btn-icon:hover label{
+        text-decoration: underline;
+    }
+    .btn-icon label {
+        font-size: 14px;
+        font-weight: bold;
+        padding-top: 5px;
+    }
+    
 </style>
