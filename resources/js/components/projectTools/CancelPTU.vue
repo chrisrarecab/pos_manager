@@ -29,13 +29,13 @@
                         <option v-for="network in networkList" :value="network.id"> {{network.id}} - {{network.name}}</option>
                     </select>
                     <span>Client Branch:</span>
-                    <select v-model="branchSelect" :disabled="!networkList.length" @change="fetchTerminalList(), checkStepValidation()" class="border w-full custom-select mb-2">
-                        <option v-for="branch in branchList" :value="branch.id">  {{branch.branch_id}} - {{branch.name}}</option>
+                    <select v-model="branchSelect" :disabled="!networkList.length" @change="getBranchIdValue(), fetchTerminalList(), checkStepValidation()" class="border w-full custom-select mb-2">
+                        <option v-for="(branch, index) in branchList" :value="index">  {{branch.branch_id}} - {{branch.name}}</option>
                     </select>
                     <span>Client Terminal: <label v-show="showRequiredLabel" class="required-label">(required*)</label></span>
-                    <select v-model="terminalSelect" :disabled="!branchList.length" @change="checkStepValidation()" class="border w-full custom-select mb-2">
-                        <option value="0" :disabled="true">Select Terminal No.</option>
-                        <option v-show="terminalShow" v-for="terminal in terminalList" :value="terminal.id">  {{terminal.terminal_number}} </option>
+                    <select v-model="terminalSelect" :disabled="!branchList.length" @change="getTerminalNoValue(), checkStepValidation()" class="border w-full custom-select mb-2">
+                        <option value="-1" :disabled="true">Select Terminal No.</option>
+                        <option v-for="(terminal, index) in terminalList" :value="(index)">  {{terminal.terminal_number}} </option>
                     </select>
                 </template>
                 <template v-slot:step2>
@@ -92,19 +92,24 @@ const cancelPTUModal = ref(false),
     showRequiredLabel = ref(true),
     alert = ref(true),
     alertMessage = ref(''),
-    isSubmitting = ref(false),
-    groupSelect = ref(''),
+    isSubmitting = ref(false);
+
+const groupSelect = ref(0),
     groupSelectOption = ref(true),
     networkList = ref([]),
-    networkSelect = ref(''),
+    networkSelect = ref(0),
     branchList = ref([]),
-    branchSelect = ref(''),
+    branchSelect = ref(0),
+    clientBranchId = ref(0),
+    branchId = ref(0),
     terminalList = ref([]),
     terminalSelect = ref(0),
+    clientTerminalId = ref(0),
+    terminalNo = ref(0),
     terminalShow = ref(false),
     checkBIR = ref(false),
     requestReferenceNo = ref(''),
-    requestReferenceNoInput = ref(true)
+    requestReferenceNoInput = ref(true);
 
 const showToast = ref(false),
 	toastMessage = ref(''),
@@ -139,7 +144,7 @@ const checkStepValidation = () => {
     switch (currentStep) {
 
         case 1:
-            condition = terminalSelect.value == 0;
+            condition = clientTerminalId.value == 0;
             setNextDisabled(condition)
             break;
 
@@ -162,15 +167,25 @@ const resetValues = () => {
     alertMessage.value = '';
     checkBIR.value = false;
     requestReferenceNo.value = '';
-    groupSelect.value = '';
-    networkSelect.value = '';
-    branchSelect.value = '';
+    groupSelect.value = 0;
+    networkSelect.value = 0;
+    branchSelect.value = 0;
     terminalSelect.value = 0;
     isSubmitting.value = false;
 };
 
+const getBranchIdValue = (index = branchSelect.value) => {
+    clientBranchId.value = branchList.value[index].id;
+    branchId.value = branchList.value[index].branch_id;
+};
+
+const getTerminalNoValue = (index = terminalSelect.value) => {
+    clientTerminalId.value = terminalList.value[index].id;
+    terminalNo.value = terminalList.value[index].terminal_number;
+};
+
 const fetchNetworkList = async () => {
-	if (groupSelect.value == '' || groupSelect.value == null) {
+	if (groupSelect.value == '' || groupSelect.value == 0) {
 		console.warn('No client group selected');
 		return;
 	}
@@ -190,8 +205,7 @@ const fetchNetworkList = async () => {
 };
 
 const fetchBranchList = async () => {
-	if (networkSelect.value == '' || networkSelect.value == null) {
-		console.warn('No client network selected');
+	if (networkSelect.value == 0) {
 		return;
 	}
     try {
@@ -199,11 +213,13 @@ const fetchBranchList = async () => {
         if (response.data.length == 0)
             return;
         branchList.value = response.data.map(item => ({
-            id: item.id.toString(),
+            id: item.id,
             name: item.name,
             branch_id: item.branch_id,
         }));
-        branchSelect.value = branchList.value[0].id.toString();
+        branchSelect.value = 0;
+        clientBranchId.value = branchList.value[0].id;
+        terminalSelect.value = 0;
         fetchTerminalList();
     } catch (error) {
         console.error('Error fetching branch list:', error);
@@ -211,20 +227,21 @@ const fetchBranchList = async () => {
 };
 
 const fetchTerminalList = async () => {
-    terminalSelect.value = 0;
-	if (!branchSelect.value) {
-		console.warn('No client network selected');
+	if (clientBranchId.value == 0) {
 		return;
 	}
-    terminalShow.value = false;
     try {
-        const response = await axios.get(`/api/clientbase/terminal/list/` + branchSelect.value);
+        const response = await axios.get(`/api/clientbase/terminal/list/` + clientBranchId.value);
         if (response.data.length == 0) {
-            showBootstrapToast("No terminal found in this branch.", "Warning");
+            terminalSelect.value = -1;
+            clientTerminalId.value == 0;
+            terminalList.value = [];
+            terminalShow.value = false;
+            showBootstrapToast("No terminals found in this branch.", "Warning");
             return;
         }
         terminalList.value = response.data.map(item => ({
-            id: item.id.toString(),
+            id: item.id,
             terminal_number: item.terminal_number,
             pos_type: item.pos_type,
         }));
@@ -238,7 +255,7 @@ const submitCancelPTU = async () => {
     if (isSubmitting.value) 
         return;
     alertMessage.value = '';
-    if (terminalSelect.value == '' || terminalSelect.value == '0') {
+    if (clientTerminalId.value == 0) {
         console.error('No terminal detail selected.');
         showBootstrapToast('Please select a terminal from client details.', 'Error');
         alertMessage.value = 'No terminal detail selected.';
@@ -248,13 +265,14 @@ const submitCancelPTU = async () => {
     let formdata = {
         clientgroupid: groupSelect.value,
         networkid: networkSelect.value,
-        branchid: branchSelect.value,
-        terminalno: terminalSelect.value,
+        branchid: branchId.value,
+        terminalno: terminalNo.value,
         reference_number: requestReferenceNo.value
     };
     isSubmitting.value = true
 
-    const response = await axios.post(`/api/clientbase/terminal/cancel-ptu/` + terminalSelect.value);
+    const response = await axios.post(`/api/clientbase/terminal/cancel-ptu/` + clientTerminalId.value);
+    console.log("CTD:"+clientTerminalId.value);
     if (response.data) {
         const result = response.data;
         if (! result.isSuccessful) {
@@ -266,7 +284,8 @@ const submitCancelPTU = async () => {
             axios.post(`/api/v1/cancelPTU`, formdata)
             .then(response => {
                 if (response.data.isSuccessful) {
-                    statusMessage.value = response.data.message;
+                    showBootstrapToast(response.data.message, 'Success');
+                    closeModal();
                 }
                 isSubmitting.value = false;
             })
