@@ -3,9 +3,10 @@
 @endsection
 
 @section('content')
+<session-component></session-component>
+@if(session('userId'))
 <div class="container">
-    <session-component></session-component>
-    <project-tools-component></project-tools-component>
+    <cancel-ptu-component></cancel-ptu-component>
 </div>
-
+@endif
 @endsection

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 Route::get('/phpinfo', function () { phpinfo(); });
 Route::get('/debug-session', function () { return session()->all(); });
 Route::get('/sample', function () {  return view('sample'); });
+Route::get('/', function () {  return view('dashboard'); });
 
 Route::get('/register', function () { return redirect('/register/core'); });
 Route::get('/register/core', function (Request $request) {
@@ -16,6 +17,7 @@ Route::get('/register/core', function (Request $request) {
 });
 
 Route::get('/login', function (Request $request) { return view('auth.login'); })->name('login');
+Route::get('/logout', [UserController::class, 'logout']);
 Route::post('/login/cirms', [UserController::class, 'bypassLoginCirms'])->name('login.cirms');
 Route::post('logout', [UserController::class, 'logout']);
 

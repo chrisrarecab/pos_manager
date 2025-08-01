@@ -27,7 +27,7 @@ export default {
   props: {
     modelValue: [String, Number],
   },
-  
+
   emits: ['update:modelValue', 'change'],
   
   methods: {
@@ -35,7 +35,10 @@ export default {
       this.$emit('update:modelValue', event.target.value);
       this.$emit('change', event.target.value);
       const selectedIndex = event.target.selectedIndex;
-      this.selectedName = event.target.options[selectedIndex].text;
+      this.selectedName = event.target.options[selectedIndex].getAttribute('name');
+    },
+    getSelectedName() {
+      return this.selectedName;
     }
   },
 

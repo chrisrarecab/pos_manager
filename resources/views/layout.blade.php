@@ -48,6 +48,7 @@
     </nav>
     @endif
     <header class="py-3 mb-4">
+        @if(session('userId'))
         <div class="container d-flex flex-wrap justify-content-center">
             <a href="/" class="d-flex align-items-center mb-3 mb-lg-0 me-lg-auto text-dark text-decoration-none">
                 <svg class="bi me-2" width="40" height="32">
@@ -69,6 +70,7 @@
                 </ul>
             </form>
         </div>
+        @endif
     </header>
     <main>
         <div id="app">

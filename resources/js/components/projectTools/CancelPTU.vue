@@ -6,43 +6,50 @@
         </div>
         <!--<b-button @click="cancelPTUModal=true">Cancel PTU</b-button>-->
         <Modal v-model="cancelPTUModal" title="Cancel PTU" size="m"
-        :hideFooter ="!showFooter"
+        :hideFooter ="true"
         :isLoading="isSubmitting"
         @close="closeModal()">
             <MultiStepForm ref="multiStepRefCancelPTU"
 						:stepLabels="['Select Terminal', 'Reference Number', 'Confirmation']"
                         :key="cancelPTUModal ? 'open' : 'closed'"
-      					@stepBack="showFooter=false, alertMessage=false, checkBIR=false"
+                        :nextDisabled="true"
+                        :endButtonName="'End'"
+                        @stepNext="checkStepValidation()"
+      					@stepBack="alertMessage=false, checkBIR=false, checkStepValidation()"
 						@reset="">
 
                 <template v-slot:step1>
                     <span>Client Group:</span>
-                    <GroupList 
+                    <GroupList ref="groupSelectOption"
                         v-model="groupSelect"
-                        :isLoading="isLoading"
-                        :disabled="isLoading"
-                        :selectedName="selectName"
                         @change="fetchNetworkList()"
                     />
                     <span>Client Network:</span>
-                    <select v-model="networkSelect" :disabled="!networkList.length" @change="fetchBranchList()" class="border w-full custom-select mb-2">
+                    <select v-model="networkSelect" :disabled="!networkList.length" @change="fetchBranchList(), checkStepValidation()" class="border w-full custom-select mb-2">
                         <option v-for="network in networkList" :value="network.id"> {{network.id}} - {{network.name}}</option>
                     </select>
                     <span>Client Branch:</span>
-                    <select v-model="branchSelect" :disabled="!networkList.length" @change="fetchTerminalList()" class="border w-full custom-select mb-2">
+                    <select v-model="branchSelect" :disabled="!networkList.length" @change="fetchTerminalList(), checkStepValidation()" class="border w-full custom-select mb-2">
                         <option v-for="branch in branchList" :value="branch.id">  {{branch.branch_id}} - {{branch.name}}</option>
                     </select>
-                    <span>Client Terminal: <label class="required-input">(required*)</label></span>
-                    <select v-model="terminalSelect" :disabled="!branchList.length" class="border w-full custom-select mb-2">
+                    <span>Client Terminal: <label v-show="showRequiredLabel" class="required-label">(required*)</label></span>
+                    <select v-model="terminalSelect" :disabled="!branchList.length" @change="checkStepValidation()" class="border w-full custom-select mb-2">
+                        <option value="0" :disabled="true">Select Terminal No.</option>
                         <option v-show="terminalShow" v-for="terminal in terminalList" :value="terminal.id">  {{terminal.terminal_number}} </option>
                     </select>
                 </template>
                 <template v-slot:step2>
-                    <p>Request reference/ticket number: <input v-model="requestReferenceNo" class="reference-no-input" maxlength="7" type="text"></p>
+                    <p>Request reference number: <label v-show="showRequiredLabel" class="required-label">(required*)</label></p>
+                    <p><input ref="requestReferenceNoInput" v-model="requestReferenceNo" @input="checkStepValidation()" class="reference-no-input" maxlength="7" type="text" autocomplete="off"></p>
                 </template>
                 <template v-slot:step3>
                     <div>
-                        <p><input v-model="checkBIR" type="checkbox">{{ textCheckBIR }}</p>
+                        <p>Has the BIR approved of this procedure?</p>
+                        <p>Furthermore, this will increment the reset counter,</p>
+                        <p>Are you sure you want to continue?&nbsp;&nbsp;
+                            <input v-model="checkBIR" type="checkbox"></input>&nbsp;
+                            <label v-show="!checkBIR" class="required-label">(required*)</label>
+                        </p>
                     </div>
                     <div>
                         <b-alert v-show="alertMessage.length" v-model="alert" variant="danger">
@@ -50,7 +57,7 @@
                         </b-alert>
                     </div>
                     <div class="submit-form">
-                        <button class="btn btn-success" @click="submitCancelPTU()" :disabled="!checkBIR">
+                        <button class="btn btn-success" @click="submitCancelPTU()" v-show="checkBIR" :disabled="isSubmitting">
                             <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             {{ isSubmitting ? 'Requesting...' : 'Submit' }}
                         </button>
@@ -77,42 +84,41 @@
 import { ref, onMounted, onBeforeUnmount, computed, watch, reactive, nextTick  } from 'vue';
 import Modal from '/resources/js/components/common/Modal.vue';
 import ToastNotification from '/resources/js/components/common/ToastNotification.vue';
-import MultiStepForm from '/resources/js/components/common/MultiStep.vue';
-import GroupList from '../projectTools/GroupList.vue';
+import MultiStepForm from '/resources/js/components/common/MultiStepWithValidation.vue';
+import GroupList from '../common/GroupList.vue';
 
 const cancelPTUModal = ref(false),
-    currentStep = ref(1),
+    multiStepRefCancelPTU = ref(true),
+    showRequiredLabel = ref(true),
     alert = ref(true),
     alertMessage = ref(''),
-    isLoading = ref(false),
     isSubmitting = ref(false),
-    showFooter = ref(false),
     groupSelect = ref(''),
-    selectName = ref(''),
+    groupSelectOption = ref(true),
     networkList = ref([]),
     networkSelect = ref(''),
     branchList = ref([]),
     branchSelect = ref(''),
     terminalList = ref([]),
-    terminalSelect = ref(''),
+    terminalSelect = ref(0),
     terminalShow = ref(false),
     checkBIR = ref(false),
-    textCheckBIR = " Has the BIR approved of this procedure? Furthermore, this will increment the reset counter, are you sure you want to continue?",
-    requestReferenceNo = ref('');
+    requestReferenceNo = ref(''),
+    requestReferenceNoInput = ref(true)
 
 const showToast = ref(false),
-	toastMessage = ref(""),
-	toastType = ref(""),
-	toastTitle = ref("Notification"),
+	toastMessage = ref(''),
+	toastType = ref(''),
+	toastTitle = ref('Notification'),
 	toastRef = ref(null);
-const showBootstrapToast = (message, type, title = "Notification", duration = 3000) => {
+const showBootstrapToast = (message, type, title = 'Notification', duration = 3000) => {
 	toastMessage.value = message;
 	toastType.value = type
 	toastTitle.value = title;
 	showToast.value = true;
 
 const toastElement = toastRef.value;
-if (toastElement) {
+if (toastElement && !showToast.value) {
 	const toastInstance = new Toast(toastElement);
 	toastInstance.show();
 }
@@ -122,29 +128,46 @@ setTimeout(() => {
 	}, duration);
 };
 
-const openModal = () => {
-	cancelPTUModal.value = true;
-    showFooter.value = false;
-};
+
+const setNextDisabled = (bool = false) => {
+    multiStepRefCancelPTU.value.disableNextStep(bool);
+}
+
+const checkStepValidation = () => {
+    let currentStep = multiStepRefCancelPTU.value.getCurrentStep();
+    let condition = true;
+    switch (currentStep) {
+
+        case 1:
+            condition = terminalSelect.value == 0;
+            setNextDisabled(condition)
+            break;
+
+        case 2:
+            condition = requestReferenceNo.value == '';
+            setNextDisabled(condition);
+            break;
+
+        default:
+            break;
+    }
+    showRequiredLabel.value = condition;
+}
 
 const closeModal = () => {
-	cancelPTUModal.value = false;
-    showFooter.value = false;
+    cancelPTUModal.value = false;
+	resetValues();
+};
+const resetValues = () => {
     alertMessage.value = '';
     checkBIR.value = false;
     requestReferenceNo.value = '';
     groupSelect.value = '';
     networkSelect.value = '';
     branchSelect.value = '';
-    terminalSelect.value = '';
+    terminalSelect.value = 0;
+    isSubmitting.value = false;
 };
-
-const nextProgres = () => {
-    if (requestReferenceNo.length) {
-        
-    }
-    currentStep++;
-}
 
 const fetchNetworkList = async () => {
 	if (groupSelect.value == '' || groupSelect.value == null) {
@@ -188,12 +211,12 @@ const fetchBranchList = async () => {
 };
 
 const fetchTerminalList = async () => {
+    terminalSelect.value = 0;
 	if (!branchSelect.value) {
 		console.warn('No client network selected');
 		return;
 	}
     terminalShow.value = false;
-    terminalSelect.value = '';
     try {
         const response = await axios.get(`/api/clientbase/terminal/list/` + branchSelect.value);
         if (response.data.length == 0) {
@@ -205,7 +228,6 @@ const fetchTerminalList = async () => {
             terminal_number: item.terminal_number,
             pos_type: item.pos_type,
         }));
-        terminalSelect.value = terminalList.value[0].id.toString();
         terminalShow.value = true;
     } catch (error) {
         console.error('Error fetching terminal list:', error);
@@ -213,10 +235,12 @@ const fetchTerminalList = async () => {
 };
 
 const submitCancelPTU = async () => {
+    if (isSubmitting.value) 
+        return;
     alertMessage.value = '';
     if (terminalSelect.value == '' || terminalSelect.value == '0') {
-        console.error("No terminal detail selected.");
-        showBootstrapToast("Please select a terminal from client details.", "Error");
+        console.error('No terminal detail selected.');
+        showBootstrapToast('Please select a terminal from client details.', 'Error');
         alertMessage.value = 'No terminal detail selected.';
         return;
     }
@@ -235,7 +259,7 @@ const submitCancelPTU = async () => {
         const result = response.data;
         if (! result.isSuccessful) {
             const error = result.error;
-            showBootstrapToast(error, "Error");
+            showBootstrapToast(error, 'Error');
             alertMessage.value = error;
         }
         else {
@@ -248,8 +272,9 @@ const submitCancelPTU = async () => {
             })
             .catch(error => {
                 let errors = error.response.data.errors;
+                alertMessage.value = '';
                 Object.values(errors).forEach(val => {
-                    alertMessage.value += val + "\n";
+                    alertMessage.value += val + '\n';
                 });
                 isSubmitting.value = false;
             });
@@ -260,7 +285,7 @@ const submitCancelPTU = async () => {
 
 </script>
 <style scoped>
-    .required-input {
+    .required-label {
         color:red;
         font-size: 12px;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -268,12 +293,11 @@ const submitCancelPTU = async () => {
     .reference-no-input {
         margin: auto;
         text-align: left;
-        padding: 2px;
+        padding: 2px 5px;
         width: 100px;
     }
     .submit-form {
         text-align: center;
-        padding-top: 15px;
     }
     .submit-form button {
         width: 200px;
@@ -296,5 +320,8 @@ const submitCancelPTU = async () => {
         font-weight: bold;
         padding-top: 5px;
     }
-    
+    input[type=checkbox] {
+        transform: scale(1.5);
+        cursor: pointer;
+    }
 </style>
