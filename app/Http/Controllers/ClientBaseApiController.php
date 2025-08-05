@@ -124,7 +124,7 @@ class ClientBaseApiController extends Controller
         if (! isset($response['Status'])) {
             $data['isSuccessful'] = false;
             $data['message'] = "Failed to process the request.";
-            $data['error'] = "Error: Unable to reach API server.";
+            $data['error'] = "Error: Unable to update client base. Please update the status of the terminal in client base manually";
             $data['status'] = 500;
         } elseif ($response->status() != 200) {
             $data['isSuccessful'] = false;

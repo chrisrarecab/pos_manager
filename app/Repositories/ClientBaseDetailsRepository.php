@@ -54,6 +54,7 @@ class ClientBaseDetailsRepository
             ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
             ->where('CD.id', $id)
             ->where('CTD.show', '<>', 0)
+            ->where('CTD.status', '<>', 0)
             ->where('CTD.referenceno', '>', 0)
             ->orderBy('CTD.referenceno', 'ASC')
             ->get();

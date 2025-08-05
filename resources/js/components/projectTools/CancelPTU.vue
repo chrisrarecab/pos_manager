@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="btn-icon" @click="cancelPTUModal=true">
-            <img src="/resources/images/no-screen.png"></img>
+            <img src="/resources/images/no-screen.png" class="btn-img"></img>
             <label>Cancel PTU</label>
         </div>
         <!--<b-button @click="cancelPTUModal=true">Cancel PTU</b-button>-->
@@ -169,8 +169,11 @@ const resetValues = () => {
     requestReferenceNo.value = '';
     groupSelect.value = 0;
     networkSelect.value = 0;
+    networkList.value = [];
     branchSelect.value = 0;
+    branchList.value = [];
     terminalSelect.value = 0;
+    terminalList.value = [];
     isSubmitting.value = false;
 };
 
@@ -272,7 +275,6 @@ const submitCancelPTU = async () => {
     isSubmitting.value = true
 
     const response = await axios.post(`/api/clientbase/terminal/cancel-ptu/` + clientTerminalId.value);
-    console.log("CTD:"+clientTerminalId.value);
     if (response.data) {
         const result = response.data;
         if (! result.isSuccessful) {
@@ -322,8 +324,9 @@ const submitCancelPTU = async () => {
         width: 200px;
     }
     .btn-icon {
-        border: 3px solid black;
-        width: 120px;
+        border: 2px solid rgb(46, 46, 46);
+        width: 100px;
+        height: 100px;
         padding: 15px;
         text-align: center;
         cursor: pointer;
@@ -335,9 +338,13 @@ const submitCancelPTU = async () => {
         text-decoration: underline;
     }
     .btn-icon label {
-        font-size: 14px;
+        font-size: 11px;
         font-weight: bold;
         padding-top: 5px;
+        cursor: pointer;
+    }
+    .btn-img {
+        width: 45px;
     }
     input[type=checkbox] {
         transform: scale(1.5);
