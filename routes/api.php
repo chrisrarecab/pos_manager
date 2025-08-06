@@ -21,6 +21,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/processDone', 'update');
     });
 
+    // Cancel PTU
+    Route::controller(SuperadminToolFlagsController::class)->prefix('cancelPTU')->group(function () {
+        Route::post('/', 'storeCancelPTU');
+        Route::post('/getPending', 'getCancelPTU');
+        Route::post('/processDone', 'updateValue');
+    });
+
     // User List
     Route::controller(UserlistController::class)->group(function () {
         Route::get('/userlistApi', 'index');
@@ -54,6 +61,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/update', 'updateTerminalSettings');
         Route::post('/apply-to-all', 'applySettingsToMultipleTerminals');
     });
+});
+
+Route::controller(ClientBaseApiController::class)->group(function () {
+    Route::get('/clientbase/group/list', 'getClientGroupList');
+    Route::get('/clientbase/network/list/{id}', 'getClientNetworkList');
+    Route::get('/clientbase/branch/list/{id}', 'getClientBranchList');
+    Route::get('/clientbase/terminal/list/{id}', 'getClientTerminalList');
+    Route::post('/clientbase/terminal/cancel-ptu/{id}', 'postCancelPosPTU');
 });
 
 Route::controller(UserController::class)->group(function () {

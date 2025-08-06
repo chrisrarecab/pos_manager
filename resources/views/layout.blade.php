@@ -38,7 +38,7 @@
                 @if(session('userId'))
                 <li class="nav-item">
                     <a href="logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="nav-link link-dark px-2">Logout</a>
-                    <form id="logout-form" action="logout" method="POST" style="display: none;">
+                    <form id="logout-form" action="/logout" method="POST" style="display: none;">
                         {{ csrf_field() }}
                     </form>
                 </li>
@@ -48,6 +48,7 @@
     </nav>
     @endif
     <header class="py-3 mb-4">
+        @if(session('userId'))
         <div class="container d-flex flex-wrap justify-content-center">
             <a href="/" class="d-flex align-items-center mb-3 mb-lg-0 me-lg-auto text-dark text-decoration-none">
                 <svg class="bi me-2" width="40" height="32">
@@ -69,6 +70,7 @@
                 </ul>
             </form>
         </div>
+        @endif
     </header>
     <main>
         <div id="app">

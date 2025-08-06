@@ -8,6 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Storesuperadmin_tool_flagsRequest;
 use App\Http\Requests\Updatesuperadmin_tool_flagsRequest;
 use App\Http\Requests\Getsuperadmin_tool_flagsRequest;
+use App\Http\Requests\SuperadminTool\StoreCancelPTURequest;
+use App\Http\Requests\SuperadminTool\GetCancelPTURequest;
+use App\Http\Requests\SuperadminTool\UpdateSuperadminToolRequest;
 use Illuminate\Http\Request;
 use DB;
 
@@ -154,6 +157,120 @@ class SuperadminToolFlagsController extends Controller
                 "status" => "Failed"
             );
             return json_encode($data);
+        }
+    }
+
+    public function storeCancelPTU(StoreCancelPTURequest $request)
+    {
+        $request->validated();
+        $existing = DB::table('superadmin_tool_flags')
+                ->where('clientgroupid', $request->clientgroupid)
+                ->where('networkid', $request->networkid)
+                ->where('branchid', $request->branchid)
+                ->where('terminalno', $request->terminalno)
+                ->where('type', 2)
+                ->where('value', 1)
+                ->exists();
+        
+        if ($existing) {
+            $response = Array(
+                "isSuccessful" => false,
+                "message" => "Request failed.",
+                "errors" => ["existing" => "A request was already made with this terminal."]
+            );
+            return response()->json($response, 422);
+        } 
+        else {
+            $id = superadmin_tool_flags::insertGetId([
+                'clientgroupid' => $request->clientgroupid,
+                'networkid' => $request->networkid,
+                'branchid' => $request->branchid,
+                'terminalno' => $request->terminalno,
+                'value' => 1,
+                'type' => 2,
+                'meta_data' => '[]',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'reference_number' => $request->reference_number
+            ]);
+            $response = Array(
+                "isSuccessful" => true,
+                "message" => "Request successful.",
+                "values" => ["id" => $id],
+                "errors" => []
+            );
+            return response()->json($response, 200);
+        }
+    }
+
+    public function getCancelPTU(GetCancelPTURequest $request)
+    {
+        $request->validated();
+        $result = DB::table('superadmin_tool_flags')
+                ->select('id', 'reference_number')
+                ->where('clientgroupid', $request->clientgroupid)
+                ->where('networkid', $request->networkid)
+                ->where('branchid', $request->branchid)
+                ->where('terminalno', $request->terminalno)
+                ->where('value', 1)
+                ->first();
+        
+        if ($result) {
+            $response = Array(
+                "id"    => $result->id,
+                "referenceno" => $result->reference_number
+            );
+        } 
+        else {
+            $response = Array(
+                "id"    => 0,
+                "referenceno" => ""
+            );
+        }
+        return response()->json($response, 200);
+    }
+
+    public function updateValue(UpdateSuperadminToolRequest $request) {
+        $request->validated();
+        if ($request->isdone) {
+            $result = DB::table('superadmin_tool_flags')
+                ->select('id', 'value')
+                ->where('id', $request->requestid)
+                ->where('value', false)
+                ->first();
+
+            if ($result) {
+                $response = Array(
+                    "id"    => $request->requestid,
+                    "message" => "The request was already done or expired."
+                );
+                return response()->json($response, 422);
+            }
+
+            $updateValue = DB::table('superadmin_tool_flags')
+                ->where('id', $request->requestid)
+                ->update(['value' => false, 'updated_at' => now()]);
+
+            if ($updateValue) {
+                $response = Array(
+                    "id"    => $request->requestid,
+                    "message" => "Request successful."
+                );
+                return response()->json($response, 200);
+            } 
+            else {
+                $response = Array(
+                        "id"    => $request->requestid,
+                        "message" => "Request not found."
+                );
+                return response()->json($response, 404);
+            }
+        } else {
+            $response = Array(
+                    "id"    => $request->requestid,
+                    "message" => "Unable to process request."
+            );
+            return response()->json($response, 400);
         }
     }
 

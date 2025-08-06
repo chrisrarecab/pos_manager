@@ -10,7 +10,7 @@
         methods: {
             checkAuth() {
                 let self = this;
-                axios.get('api/checkUserSession', {}).then((response) => {
+                axios.get('/api/checkUserSession', {}).then((response) => {
                     let currentPageName = self.$router.currentRoute.value.name;
                     if (response.data == false) {
                         if (currentPageName != 'login') {
@@ -18,7 +18,7 @@
                         }
                     }
                     else {
-                        if (currentPageName != 'dashboard') {
+                        if (currentPageName == 'login') {
                             self.$router.push('/dashboard').then(()=> {self.$router.go(0)});
                         }
                     }

@@ -135,7 +135,6 @@
                     console.log(response);
                     self.loadingSpinner = false;
                     if (response.status == 200) {
-                        alert('Login successfully!');
                         self.$router.push('/dashboard').then(()=> {self.$router.go(0)});
                     }
                     self.isLoading = false;
