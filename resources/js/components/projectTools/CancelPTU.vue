@@ -1,10 +1,11 @@
 <template>
-    <div>
-        <div class="btn-icon" @click="cancelPTUModal=true">
-            <img src="/resources/images/no-screen.png" class="btn-img"></img>
-            <label>Cancel PTU</label>
+        <div class="custom-btn-div">
+            <div class="custom-btn " @click="cancelPTUModal=true">
+                <img src="/resources/images/no-screen.png"></img>
+                <label>Cancel PTU</label>
+            </div>
         </div>
-        <!--<b-button @click="cancelPTUModal=true">Cancel PTU</b-button>-->
+        
         <Modal v-model="cancelPTUModal" title="Cancel PTU" size="m"
         :hideFooter ="true"
         :isLoading="isSubmitting"
@@ -65,8 +66,7 @@
                 </template>
             </MultiStepForm>
         </Modal>
-    </div>
-    <div>
+
         <ToastNotification 
   				v-if="showToast"
 				ref="toastRef"
@@ -76,16 +76,16 @@
 				:type="toastType"
 				@close="showToast = false"
         />
-    </div>
-    
+
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch, reactive, nextTick  } from 'vue';
+import { ref } from 'vue';
 import Modal from '/resources/js/components/common/Modal.vue';
 import ToastNotification from '/resources/js/components/common/ToastNotification.vue';
 import MultiStepForm from '/resources/js/components/common/MultiStepWithValidation.vue';
 import GroupList from '../common/GroupList.vue';
+import '/resources/css/project-tools.css';
 
 const cancelPTUModal = ref(false),
     multiStepRefCancelPTU = ref(true),
@@ -116,21 +116,21 @@ const showToast = ref(false),
 	toastType = ref(''),
 	toastTitle = ref('Notification'),
 	toastRef = ref(null);
+
 const showBootstrapToast = (message, type, title = 'Notification', duration = 3000) => {
 	toastMessage.value = message;
 	toastType.value = type
 	toastTitle.value = title;
 	showToast.value = true;
+    const toastElement = toastRef.value;
+    if (toastElement && !showToast.value) {
+        const toastInstance = new Toast(toastElement);
+        toastInstance.show();
+    }
 
-const toastElement = toastRef.value;
-if (toastElement && !showToast.value) {
-	const toastInstance = new Toast(toastElement);
-	toastInstance.show();
-}
-
-setTimeout(() => {
-	showToast.value = false;
-	}, duration);
+    setTimeout(() => {
+        showToast.value = false;
+    }, duration);
 };
 
 
@@ -322,29 +322,6 @@ const submitCancelPTU = async () => {
     }
     .submit-form button {
         width: 200px;
-    }
-    .btn-icon {
-        border: 2px solid rgb(46, 46, 46);
-        width: 100px;
-        height: 100px;
-        padding: 15px;
-        text-align: center;
-        cursor: pointer;
-    }
-    .btn-icon:hover {
-        background-color: rgba(165, 126, 0, 0.3);
-    }
-    .btn-icon:hover label{
-        text-decoration: underline;
-    }
-    .btn-icon label {
-        font-size: 11px;
-        font-weight: bold;
-        padding-top: 5px;
-        cursor: pointer;
-    }
-    .btn-img {
-        width: 45px;
     }
     input[type=checkbox] {
         transform: scale(1.5);

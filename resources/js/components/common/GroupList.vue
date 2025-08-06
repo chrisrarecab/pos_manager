@@ -1,7 +1,5 @@
 
 <template>
- <div class="col-8 d-flex flex-column select-div">
-  <div class="d-flex align-items-start">
     <select
       :value="modelValue"
       class="group-select border w-full custom-select mb-2"
@@ -14,10 +12,6 @@
       </option>
     </select>
     <span v-if="isLoading" class="loading-spinner ms-1 mt-2"></span>
-  </div>
-</div>
-
-  
 </template>
 
 <script>
@@ -65,9 +59,7 @@ export default {
 </script>
 
 <style>
-.group-select {
-  width:385px;
-}
+
 .loading-spinner {
   position: absolute;
   right: -40px;
