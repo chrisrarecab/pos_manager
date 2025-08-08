@@ -31,8 +31,8 @@
             </ul>
             <ul class="nav">
                 <!--  text-decoration-underline  -->
-                <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Home</a></li>
-                <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Configuration</a></li>
+                <li class="nav-item"><a href="/dashboard" class="nav-link link-dark px-2">Home</a></li>
+                <li class="nav-item"><a href="/pos/settings" class="nav-link link-dark px-2">Configuration</a></li>
                 <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Backup</a></li>
                 <li class="nav-item"><a href="#" class="nav-link link-dark  px-2">Logs</a></li>
                 @if(session('userId'))
@@ -73,6 +73,12 @@
         @endif
     </header>
     <main>
+        <script>
+            window.LaravelUser = {
+                isAdmin: @json(session('isAdmin', false)),
+                project: @json(session('software_id', 1))
+            };
+        </script>
         <div id="app">
         @yield('content')
         </div>

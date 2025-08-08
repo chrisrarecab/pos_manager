@@ -2,13 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\UserPermission;
-use Laravel\Sanctum\PersonalAccessToken;
-use App\Http\Controllers\ClientBaseApiController;
-use App\Http\Controllers\CirmsApiController;
-use App\Repositories\UserRepository;
-
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
@@ -19,6 +12,15 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
+
+use App\Models\User;
+use App\Models\UserPermission;
+use App\Http\Requests\UserRequest;
+use App\Http\Controllers\ClientBaseApiController;
+use App\Http\Controllers\CirmsApiController;
+use App\Services\UserService;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 
 
 use Hash;
@@ -26,12 +28,11 @@ use Session;
 
 class UserController extends Controller
 {   
-    protected $userRepo;
 
-    public function __construct(UserRepository $userRepo)
-    {
-        $this->userRepo = $userRepo;
-    }
+    public function __construct(
+        protected UserService $userService,
+        protected UserRepositoryInterface $userRepo
+    ) {}
 
     public function getSession(Request $request)
     {
@@ -85,20 +86,25 @@ class UserController extends Controller
             return response()->json(['error' => 'Authentication error (500)'], 500);
         }
 
-        if ($request->project == 2) {
-            $api = new ClientBaseApiController();
-            $api->verifyClientDomain($request->domain);
-            $cirmsApi = new CirmsApiController();
-            $cirmsApi->userAuthentication($request);
-        }
+        // if ($request->project == 2) {
+        //     $api = new ClientBaseApiController();
+        //     $api->verifyClientDomain($request->domain);
+        //     $cirmsApi = new CirmsApiController();
+        //     $cirmsApi->userAuthentication($request);
+        // }
 
         $user = Auth::user();
         $user->tokens()->delete();
+
+        $isAdmin = $this->userRepo->checkAdminPermission($user->id);
+
         session()->regenerate();
         session()->put('userId', $user->id);
+        session()->put('isAdmin', $isAdmin);
         session()->put('clientGroupId', $user->client_group_id);
         session()->put('fullName', $user->full_name);
-        session()->put('sourceProjectId', $user->software_id);
+        session()->put('software_id', $user->software_id);
+        session()->put('domain', $user->domain_name);
         session()->save();
         return response()->json([
                 'user' => $user,
@@ -153,20 +159,22 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function bypassRegisterCirms(Request $request)
+    public function bypassRegisterCirms(UserRequest $request)
     {
-        $response = $this->userRepo->bypassRegisterCirmsRepo($request);
+        $response = $this->userService->bypassRegisterCirms($request);
+
         return response()->json([
             'isSuccessful' => $response->success,
             'values' => $response->values,
             'message' => $response->message,
             'errors' => $response->error ?? [],
-        ], $response->success ? 200 : 500);
+        ], $response->statusCode);
     }
 
     public function bypassLoginCirms(Request $request)
     {
-        $response = $this->userRepo->bypassLoginRepo($request);
+        $response = $this->userService->bypassLoginCirms($request);
+
         return response()->json([
             'isSuccessful' => $response->success,
             'values' => $response->values ?? null,
@@ -174,4 +182,5 @@ class UserController extends Controller
             'errors' => $response->error ?? [],
         ],  $response->statusCode);
     }
+
 }

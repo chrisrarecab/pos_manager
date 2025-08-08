@@ -19,7 +19,7 @@
                             :tooltip-style="{
                                 '--tooltip-bg': '#fff',
                                 '--tooltip-text-color': '#000',
-                                '--text-tooltip-left': '3%',
+                                '--text-tooltip-after-left': '3%',
                                 '--text-tooltip-translateX': '-5%'
                             }"
                         />
@@ -37,7 +37,8 @@
                         :tooltip-style="{
                             '--tooltip-bg': '#000',
                             '--tooltip-text-color': '#fff',
-                            '--text-tooltip-left': '3%',
+                             '--text-tooltip-left': '100%',
+                            '--text-tooltip-after-left': '3%',
                             '--text-tooltip-translateX': '-10%'
                         }"
                         /> 
@@ -53,7 +54,7 @@
                         :tooltip-style="{
                             '--tooltip-bg': '#ffbf00',
                             '--tooltip-text-color': '#000',
-                            '--text-tooltip-left': '3%',
+                            '--text-tooltip-after-left': '3%',
                             '--text-tooltip-translateX': '-5%'
                         }"
                         />
@@ -62,12 +63,12 @@
 
                 <!-- Text Input -->
                 <div v-if="setting.form_element === 'text'" class="mb-3 mt-2 ps-1">
-                    <input class="custom-input" type="text" v-model="setting.value" disabled>
+                    <input class="custom-input" type="text" v-model="setting.value" :disabled="!isAdmin">
                 </div>
 
                 <!-- Select Dropdown -->
                  <div v-else-if="setting.form_element === 'dropdown'" class="mb-3 mt-2 ps-1">
-                    <select class="custom-select" v-model="setting.value" disabled>
+                    <select class="custom-select" v-model="setting.value" :disabled="!isAdmin">
                         <option v-for="(option, i) in setting.options" :key="i" :value="option.id">
                             {{ option.name }}
                         </option>
@@ -84,7 +85,7 @@
                         :close-on-select="false"
                         :clear-on-select="false"
                         :preserve-search="true"
-                        :disabled="true"
+                        :disabled="!isAdmin"
                         placeholder="Type or select options"
                         label="value"
                         track-by="id"
@@ -95,10 +96,25 @@
 
                 <!-- Radio Buttons -->
                 <div v-else-if="setting.form_element === 'radio_button'" class="d-flex gap-3 mb-3 mt-2 ps-2">
-                   <label  v-for="(option, i) in [...setting.options].sort((a, b) => b.value - a.value)" :key="i" >
-                        <input type="radio" :value="option.id" v-model="setting.value" disabled>
-                        {{ option.value == 1 ? "True" : "False" }}
-                    </label>
+                  <label>
+                    <input
+                      type="radio"
+                      :value="1"
+                      v-model="setting.value"
+                      :disabled="!isAdmin"
+                    />
+                    True
+                  </label>
+
+                  <label>
+                    <input
+                      type="radio"
+                      :value="0"
+                      v-model="setting.value"
+                      :disabled="!isAdmin"
+                    />
+                    False
+                  </label>
                 </div>
 
             </div>
@@ -112,6 +128,9 @@ import { reactive, computed, watch } from 'vue';
 import { format } from 'date-fns';
 import Tooltip from '../common/TextTooltip.vue';
 import Multiselect from 'vue-multiselect';
+import { checkIfAdmin } from '@/composables/common.js'
+
+const { isAdmin } = checkIfAdmin();
 
 const props = defineProps({
     icons: Object,
@@ -123,21 +142,31 @@ const formatDate = (date) => {
     return format(new Date(date), 'yyyy-MM-dd hh:mm a');
 };
 
+const localSettings = ref([]);
 
-const localSettings = reactive(
-  props.settings.map(setting => {
-    let value = setting.value;
+watch(
+  () => props.settings,
+  (newSettings) => {
+    localSettings.value = newSettings.map(setting => {
+      let value = setting.value;
 
-    if (setting.form_element === 'multi_select_dropdown') {
-      const selectedIds = Array.isArray(value) ? value  : typeof value === 'string' ? value.split(',').map(Number) : [];
-      value = setting.options.filter(opt => selectedIds.includes(opt.id));
-    }
+      if (setting.form_element === 'multi_select_dropdown') {
+        const selectedIds = Array.isArray(value)
+          ? value
+          : typeof value === 'string'
+            ? value.split(',').map(Number)
+            : [];
 
-    return reactive({
-      ...setting,
-      value
+        value = setting.options.filter(opt => selectedIds.includes(opt.id));
+      }
+
+      return {
+        ...setting,
+        value
+      };
     });
-  })
+  },
+  { immediate: true, deep: true }
 );
 
 const handleTag = (setting, newTag) => {
@@ -148,7 +177,7 @@ const handleTag = (setting, newTag) => {
     setting.value.push(newOption);
 };
 
-const emit = defineEmits(['update:settings']);
+const emit = defineEmits(['update:settings', 'update-setting']);
 
 watch(localSettings, (newSettings) => {
   newSettings.forEach(setting => {
@@ -173,14 +202,5 @@ watch(localSettings, (newSettings) => {
     padding: 0 25px 0 25px;
 }
 
-.tip-icon {
-    position: relative;
-    top: -1px;
-}
-
-.issue-icon {
-    position: relative;
-    top: 2.5px;
-}
 </style>
 

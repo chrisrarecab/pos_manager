@@ -28,9 +28,14 @@
 			<div class="col-4"></div>
 			<div class="col-4 d-flex flex-column align-items-end p-bottom">
 				<div class="d-flex justify-content-end">
-					<b-button ref="saveBtn" :class="['save-button', { 'saved': isSaved }]"  size="sm"  @click="submitTerminalSettings('saveSettings')"> Save Changes 
-						<b-badge variant="light">{{ changedCount }}</b-badge></b-button>
-					
+					<div class="position-relative">
+						<div v-if="isLoading" class="loading-rectangle-overlay"></div>
+						<b-button ref="saveBtn" size="sm"
+							:disabled="isLoading"
+							:class="['save-button', { 'saved': isSaved }]"  
+							@click="submitTerminalSettings('saveSettings')"> Save Changes 
+								<b-badge variant="light">{{ changedCount }}</b-badge></b-button>
+					</div>
 					<div class="custom-tooltip-container ms-2">
 						<p class="h5 mb-0 controls" @mouseenter="showTooltip" @mouseleave="hideTooltip">
 							<img :src="controlImg" height="20" width="20" alt="Control Icon">
@@ -317,36 +322,53 @@
 				</Modal>
 			</div>
 			<div class="col-4 d-flex">
-				<form class="mb-2 d-flex w-100">
-					<input type="search" class="custom-input flex-grow-1" placeholder="Search..." aria-label="Search" />
-					<b-button class=" ms-2 btn btn-warning" size="sm"><img :src="searchIcon" height="20" width="20" alt="Control Icon"></b-button>
-				</form>
+				<div class="position-relative w-100">
+					<div v-if="isLoading" class="loading-rectangle-overlay"></div>
+					<form class="mb-2 d-flex w-100">
+						<input type="search" class="custom-input flex-grow-1" placeholder="Search..." aria-label="Search" />
+						<b-button class=" ms-2 btn btn-warning" size="sm"><img :src="searchIcon" height="20" width="20" alt="Control Icon"></b-button>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
 	<b-card class="d-flex">
-      <b-tabs v-model="currentTab" class="custom-tabs">
-        <b-tab v-for="tab in settingTabs" :key="tab.id">
-			<template #title>
-				{{ tab.name }}
-				<span v-if="hasUnsavedChanges(tab.id)" class="change-icon"></span>
-			</template>
+		<div v-if="isLoading" class="d-flex align-items-center justify-content-center flex-grow-1 p-5">
+			<div class="text-center">
+			<b-spinner class="mb-2 custom-loading-grow-icon" small />
+			<div><strong>Retrieving settings, please wait...</strong></div>
+			</div>
+		</div>
+		<b-tabs v-else v-model="currentTab" class="custom-tabs">
+			<b-tab v-for="tab in settingTabs" :key="tab.id">
+				<template #title >
+					{{ tab.name }}
+					<span v-if="hasUnsavedChanges(tab.id)" class="change-icon"></span>
+				</template>
 
-          <EmptyState title="No Data Available" 
-		  	v-if="!tabData[tab.id] || tabData[tab.id].length === 0" 
-            :tabName="tab.name" 
-          />
-          
-          <SettingsData 
-            v-else
-			:icons="ICON_PATHS"
-            :settings="tabData[tab.id]"
-            :tooltipVisibility="tooltipVisibility"
-			v-model:settings="settings"
- 			@update-setting="applySettingChange"
-          />
-        </b-tab>
-      </b-tabs>
+				<EmptyState title="No Data Available" 
+					v-if="!tabData[tab.id] || tabData[tab.id].length === 0" 
+					:tabName="tab.name" 
+				/>
+				
+				<template v-else-if="tab.name === 'Terminal Connections'">
+					<TerminalConnections
+						:settings="tabData[tab.id]"
+						:icons="ICON_PATHS"
+						:tooltipVisibility="tooltipVisibility"
+					/>
+				</template>
+				<template v-else>
+					<SettingsData 
+						:icons="ICON_PATHS"
+						:settings="tabData[tab.id]"
+						:tooltipVisibility="tooltipVisibility"
+						v-model:settings="settings"
+						@update-setting="applySettingChange"
+					/>
+				</template>
+			</b-tab>
+		</b-tabs>
     </b-card>
 </template>
 
@@ -354,6 +376,7 @@
 import { ref, onMounted, onBeforeUnmount, computed, watch, reactive, nextTick  } from 'vue';
 import { BCard, BTabs, BTab } from "bootstrap-vue-3";
 import ToastNotification from '../common/ToastNotification.vue';
+import { useToast } from '@/composables/common'
 import { ICON_PATHS } from '../common/Icons.vue';
 import Modal from '../common/Modal.vue';
 import EmptyState from '../common/EmptyState.vue';
@@ -361,15 +384,12 @@ import MultiStepForm from '../common/MultiStep.vue';
 import{ fetchClientDetails, fetchTerminalSettingsTabs, fetchTerminalSettings, 
 	updateTerminalSettings, copyTerminalSettings, applySettingsToMultipleTerminals }
 	from '../terminalSettings/TerminalSettingsApi.vue';
-import TerminalSelector from '../TerminalSettings/TerminalSelector.vue';
+import TerminalSelector from '../terminalSettings/TerminalSelector.vue';
 import SettingsData from '../terminalSettings/SettingsData.vue';
+import TerminalConnections from '../terminalSettings/TerminalConnections.vue';
+import { checkProject } from '@/composables/common.js'
 
-const props = defineProps({
-	detail: {
-		type: String,
-		required: true
-	}
-})
+const { projectType } = checkProject();
 
 const isLoading = ref(false);
 const showFooter = ref(false);
@@ -394,48 +414,31 @@ const showTooltip = () => { isTooltipVisible.value = true; };
 const hideTooltip = () => { isTooltipVisible.value = false; };
 const keepTooltipOpen = () => { isTooltipVisible.value = true; };
 
-const showToast = ref(false),
-	toastMessage = ref(""),
-	toastType = ref(""),
-	toastTitle = ref("Notification"),
-	toastRef = ref(null);
-const showBootstrapToast = (message, type, title = "Notification", duration = 3000) => {
-	toastMessage.value = message;
-	toastType.value = type
-	toastTitle.value = title;
-	showToast.value = true;
-
-const toastElement = toastRef.value;
-if (toastElement) {
-	const toastInstance = new Toast(toastElement);
-	toastInstance.show();
-}
-
-setTimeout(() => {
-	showToast.value = false;
-	}, duration);
-};
+const { showToast, toastMessage, toastTitle, toastType, show } = useToast()
 
 const clientBranchDetails = ref([]);
 const clientsTerminalDetails = ref([]);
 const fetchClientTerminalDetail = async () => {
+	
+    isLoading.value = true;
 	try {
-		const data = await fetchClientDetails(props.detail);
+		const data = await fetchClientDetails();
 		clientsTerminalDetails.value = data.map(item => ({
-			branchId: item.branchid,
-			branchName: item.branchname,
-			clientGroupId: item.client_group_id,
-			clientNetworkId: item.client_network_id,
-			terminalNo: item.client_terminal_no ?? "NA",
-			clientTerminalId: item.client_terminal_id ?? null,
-			clientNetworkName: item.name
+			clientGroupId: item.clientGroupId,
+			clientNetworkId: item.clientNetworkId,
+			clientNetworkName: item.clientNetworkName,
+			clientTerminalId: item.clientTerminalId ?? null,
+			branchId: item.branchId,
+			branchName: item.branchName,
+			location: item.location,
+			terminalNo: item.terminalNo ?? "NA"
 		})).sort((a, b) => a.branchId - b.branchId);
 
 		if (clientsTerminalDetails.value.length > 0) {
 			selectedTerminal.value = clientsTerminalDetails.value[0].clientTerminalId;
 			selectedSourceTerminal.value = clientsTerminalDetails.value[0].clientTerminalId;
 		}
-		console.log(clientsTerminalDetails);
+
 		const uniqueBranchTerminals = Object.values(
 		clientsTerminalDetails.value
 			.filter(item => item.clientTerminalId !== null)
@@ -451,17 +454,17 @@ const fetchClientTerminalDetail = async () => {
 		); 
 
 		clientBranchDetails.value = uniqueBranchTerminals;
-
+    	isLoading.value = false;
 	} catch (error) {
 		console.error("Error fetching client details:", error);
-		showBootstrapToast("Failed to load terminals", "Error");
+		show("Failed to load terminals", "Error");
 	}
 };
 onMounted(fetchClientTerminalDetail);
 const clientTerminalDetailOptions = computed(() => {
 	return clientsTerminalDetails.value.map(terminal => ({
 		value: terminal.clientTerminalId,
-		text: `Branch ${terminal.branchId}: ${terminal.branchName} - Terminal# ${terminal.terminalNo}`
+		text: `Branch ${terminal.branchId}: ${terminal.branchName}${terminal.location ? ' - ' + terminal.location : ''} - Terminal# ${terminal.terminalNo}`
 	}));
 });
 
@@ -473,13 +476,14 @@ const tooltipVisibility = reactive({}),
 	currentTab = ref(0),
 	tabData = reactive({}),
 	originalTabData = ref({});
+
 const fetchTabsAndSettings = async () => {
 	if (!selectedTerminal.value) return;
-	isLoading.value = true;
+	// isLoading.value = true;
 
 	try {
 		settingTabs.value = await fetchTerminalSettingsTabs();
-		const response = await fetchTerminalSettings(selectedTerminal.value);
+		const response = await fetchTerminalSettings(selectedTerminal.value, projectType.value);
 		const settings = response.data || response;
 		Object.keys(tabData).forEach(key => {
 			tabData[key] = [];
@@ -505,7 +509,7 @@ const fetchTabsAndSettings = async () => {
 		originalTabData.value = originalValues;
 	} catch (error) {
 		console.error("Error fetching settings:", error);
-		showBootstrapToast("Failed to load settings", "Error");
+		show("Failed to load settings", "Error");
 	} finally {
 		isLoading.value = false;
 	}
@@ -520,12 +524,10 @@ const fetchModalTabsAndSettings = async () => {
 		console.warn('No modal terminal selected');
 		return;
 	}
-	
-	isLoading.value = true;
 
 	try {
 		modalSettingTabs.value = await fetchTerminalSettingsTabs();
-		const modalSettings = await fetchTerminalSettings(selectedSourceTerminal.value);
+		const modalSettings = await fetchTerminalSettings(selectedSourceTerminal.value, projectType.value);
 		
 		modalTabData.value = {};
 		
@@ -551,7 +553,7 @@ const fetchModalTabsAndSettings = async () => {
 			error: error.message,
 			stack: error.stack
 		});
-		showBootstrapToast("Failed to load settings", "Error");
+		show("Failed to load settings", "Error");
 	} finally {
 		isLoading.value = false;
 	}
@@ -606,7 +608,7 @@ const getSettingsArray = (modalTabData) => {
 	}));
 
 	if (settingsArray.length === 0) {
-		showBootstrapToast("No settings available to copy.", "Warning");
+		show("No settings available to copy.", "Warning");
 		return null; 
 	}
 
@@ -624,15 +626,16 @@ const submitTerminalSettings = async (saveType) => {
 					setting.value !== (originalTabData?.value?.[setting.id] ?? null)
 				);
 
-				changedCount.value = changedSettings.length;
+				changedCount.value;
 
 				if (changedSettings.length === 0) {
-					showBootstrapToast("No changes detected.", "Warning");
+					show("No changes detected.", "Warning");
 					blurSaveBtn();
 					return;
 				}
 
 					payload = {
+					func: 'save',
 					client_terminal_id: selectedTerminal.value,
 					settings: changedSettings.map(setting => ({
 						setting_id: setting.id,
@@ -641,7 +644,7 @@ const submitTerminalSettings = async (saveType) => {
 				};
 
 				await updateTerminalSettings(payload);
-				showBootstrapToast("Settings saved successfully", "Success");
+				show("Settings saved successfully", "Success");
 
 				changedSettings.forEach(setting => {
 					originalTabData.value[setting.id] = setting.value;
@@ -656,19 +659,20 @@ const submitTerminalSettings = async (saveType) => {
 				showToast.value = false;
 
 				if (!selectedTargetTerminal.value) {
-					showBootstrapToast("Please select a target terminal.", "Warning");
+					show("Please select a target terminal.", "Warning");
 					isLoadingCopy.value = false;	
 					return;
 				}
 
 				const settingsArray = getSettingsArray(modalTabData.value);
 				payload = {
+					func: 'copy',
 					client_terminal_id: selectedTargetTerminal.value,
 					settings: settingsArray
 				};
 
 				await copyTerminalSettings(payload);
-				showBootstrapToast("Settings copied successfully", "Success");
+				show("Settings copied successfully", "Success");
 				
 				await fetchTabsAndSettings();
 				isLoadingCopy.value = false;	
@@ -692,19 +696,20 @@ const submitTerminalSettings = async (saveType) => {
 						.filter(id => id !== null); 
 				}
 				else {
-					showBootstrapToast("Please select a target terminal.", "Warning");
+					show("Please select a target terminal.", "Warning");
 					isLoadingCopy.value = false;	
 					return;
 				};
 
 				const applyToAllSettingsArr = getSettingsArray(modalTabData.value);
 				payload = {
+					func: 'apply-to-all',
 					client_terminal_ids: targetTerminalIds,
 					settings: applyToAllSettingsArr
 				};
 
 				await applySettingsToMultipleTerminals(payload);
-				showBootstrapToast("Settings copied successfully", "Success");
+				show("Settings copied successfully", "Success");
 				
 				await fetchTabsAndSettings();
 				isLoadingCopy.value = false;	
@@ -715,7 +720,7 @@ const submitTerminalSettings = async (saveType) => {
 		
 	} catch (error) {
 		console.error("Error saving settings:", error);
-		showBootstrapToast("Failed to save settings", "Error");
+		show("Failed to save settings", "Error");
 		isLoadingCopy.value = false;	
 	}
 };
@@ -723,10 +728,10 @@ const submitTerminalSettings = async (saveType) => {
 // Disable terminal dropdown when there's changes
 const hasUnsaved = computed(() => changedCount.value > 0);
 const applySettingChange = ({ id, value }) => {
-  const setting = Object.values(tabData).flat().find(s => s.id === id);
-  if (setting) {
-    setting.value = value;
-  }
+	const setting = Object.values(tabData).flat().find(s => s.id === id);
+	if (setting) {
+		setting.value = value;
+	}
 };
 
 // For Save Changes button indicator
@@ -828,14 +833,7 @@ const closeModal = (modalType) => {
 		position: relative;
 		left: -9px;
 	}
-	.tip-icon{
-		position:relative;
-		top: -1px;
-	}
-	.issue-icon{
-		position:relative;
-		top: 2.5px;
-	}
+
 	.col-md-6{
 		padding: 0 25px 0 25px;
 	}

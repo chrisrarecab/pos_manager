@@ -1,19 +1,22 @@
 <?php
 
 namespace App\Repositories;
-use Illuminate\Support\Facades\DB;
 
-class ClientTerminalDetailRepository
+use Illuminate\Support\Facades\DB;
+use App\Repositories\Interfaces\ClientBaseRepositoryInterface;
+
+class ClientBaseRepository implements ClientBaseRepositoryInterface
 {
     public function __construct()
     {
         $this->connection = DB::connection('mysql5'); 
     }
 
-    public function getClientTerminalDetails($id)
+    public function getTerminalDetails($id)
     {
         return $this->connection->table('clientgroup as CG')
-            ->select('CTD.id as client_terminal_id', 'CG.id as client_group_id', 'CG.name as name', 'CH.id as client_network_id', 'CD.branchid', 'CD.branchname', 'CTD.referenceno as client_terminal_no')
+            ->select('CTD.id as clientTerminalId', 'CG.id as clientGroupId', 'CG.name as clientGroupName', 'CH.id as clientNetworkId', 
+               'CH.name as clientNetworkName', 'CD.branchId', 'CD.branchName', 'CTD.referenceno as terminalNo')
             ->leftJoin('clienthead as CH', 'CH.clientgroupid', '=', 'CG.id')
             ->leftJoin('clientdetails as CD', 'CD.clientid', '=', 'CH.id')
             ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
@@ -26,23 +29,23 @@ class ClientTerminalDetailRepository
             ->get();
     }
 
-    public function getClientTerminalId(
-        $client_group_id, 
-        $client_network_id, 
-        $client_branch_id, 
-        $terminal_no,
-        $pos_type
+    public function getCoreTerminalId(
+        $clientGroupId, 
+        $clientNetworkId, 
+        $clientBranchId, 
+        $terminalNo,
+        $posType
     )
     {
         return $this->connection->table('clientgroup as CG')
             ->leftJoin('clienthead as CH', 'CH.clientgroupid', '=', 'CG.id')
             ->leftJoin('clientdetails as CD', 'CD.clientid', '=', 'CH.id')
             ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
-            ->where('CG.id', $client_group_id)
-            ->where('CH.id', $client_network_id)
-            ->where('CD.branchid', $client_branch_id)
-            ->where('CTD.pos_type', $pos_type)
-            ->where('CTD.referenceno', $terminal_no)
+            ->where('CG.id', $clientGroupId)
+            ->where('CH.id', $clientNetworkId)
+            ->where('CD.branchid', $clientBranchId)
+            ->where('CTD.pos_type', $posType)
+            ->where('CTD.referenceno', $terminalNo)
             ->orderBy('CG.name', 'ASC')
             ->select('CTD.id', 'CTD.pos_type', 'CTD.referenceno as terminal_no')
             ->first();

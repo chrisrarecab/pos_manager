@@ -19,9 +19,9 @@ class Setting extends Model
     public function options(){
         return $this->hasMany(SettingOption::class, 'setting_id');
     }
-    public function terminalSetting() { 
-        return $this->hasOne(TerminalSetting::class, 'setting_id')
-                    ->where('client_terminal_id', request('client_terminal_id')); 
+    public function terminalSetting()
+    {
+        return $this->hasOne(TerminalSetting::class, 'setting_id', 'id');
     }
 
     public function issues()
