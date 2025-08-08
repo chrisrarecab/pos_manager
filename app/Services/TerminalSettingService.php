@@ -252,7 +252,7 @@ class TerminalSettingService
                 return ServiceResponse::failure('Request failed.', 'No settings provided.', 400);
             }
 
-            $softwareId = $request->software_id;
+            $softwareId = session('software_id');
             
             if ($softwareId == 1) {
                 $coreTerminalIds = $request->client_terminal_ids;

@@ -389,6 +389,8 @@ import SettingsData from '../terminalSettings/SettingsData.vue';
 import TerminalConnections from '../terminalSettings/TerminalConnections.vue';
 import { checkProject } from '@/composables/common.js'
 
+const { projectType } = checkProject();
+
 const isLoading = ref(false);
 const showFooter = ref(false);
 
@@ -475,23 +477,13 @@ const tooltipVisibility = reactive({}),
 	tabData = reactive({}),
 	originalTabData = ref({});
 
-	const sessionRes = ref({});
-	onMounted(async () => {
-	const res = await fetch('/session');
-	if (res.ok) {
-		sessionRes.value = await res.json();
-		
-	} else {
-		console.error('Failed to fetch session data');
-	}
-});
 const fetchTabsAndSettings = async () => {
 	if (!selectedTerminal.value) return;
 	// isLoading.value = true;
 
 	try {
 		settingTabs.value = await fetchTerminalSettingsTabs();
-		const response = await fetchTerminalSettings(selectedTerminal.value, sessionRes.value.software_id);
+		const response = await fetchTerminalSettings(selectedTerminal.value, projectType.value);
 		const settings = response.data || response;
 		Object.keys(tabData).forEach(key => {
 			tabData[key] = [];
@@ -532,12 +524,10 @@ const fetchModalTabsAndSettings = async () => {
 		console.warn('No modal terminal selected');
 		return;
 	}
-	
-	isLoading.value = true;
 
 	try {
 		modalSettingTabs.value = await fetchTerminalSettingsTabs();
-		const modalSettings = await fetchTerminalSettings(selectedSourceTerminal.value, sessionRes.value.software_id);
+		const modalSettings = await fetchTerminalSettings(selectedSourceTerminal.value, projectType.value);
 		
 		modalTabData.value = {};
 		
@@ -625,7 +615,6 @@ const getSettingsArray = (modalTabData) => {
 	return settingsArray;
 }
 
-const { project } = checkProject();
 const submitTerminalSettings = async (saveType) => {
 	try {
 		let payload;
@@ -637,7 +626,7 @@ const submitTerminalSettings = async (saveType) => {
 					setting.value !== (originalTabData?.value?.[setting.id] ?? null)
 				);
 
-				changedCount.value = changedSettings.length;
+				changedCount.value;
 
 				if (changedSettings.length === 0) {
 					show("No changes detected.", "Warning");
@@ -715,7 +704,6 @@ const submitTerminalSettings = async (saveType) => {
 				const applyToAllSettingsArr = getSettingsArray(modalTabData.value);
 				payload = {
 					func: 'apply-to-all',
-					software_id: project.value,
 					client_terminal_ids: targetTerminalIds,
 					settings: applyToAllSettingsArr
 				};

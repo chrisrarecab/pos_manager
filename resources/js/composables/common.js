@@ -1,13 +1,15 @@
 import { ref } from 'vue';
 
+// in session: 'isAdmin'
 export function checkIfAdmin() {
   const isAdmin = ref(Boolean(window.LaravelUser?.isAdmin));
   return { isAdmin };
 }
 
+// in session: 'software_id'
 export function checkProject() {
-  const project = ref(window.LaravelUser?.project ?? 1);
-  return { project };
+  const projectType = ref(window.LaravelUser?.project ?? 1);
+  return { projectType };
 }
 
 export function useToast() {

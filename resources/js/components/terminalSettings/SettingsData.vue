@@ -177,7 +177,7 @@ const handleTag = (setting, newTag) => {
     setting.value.push(newOption);
 };
 
-const emit = defineEmits(['update:settings']);
+const emit = defineEmits(['update:settings', 'update-setting']);
 
 watch(localSettings, (newSettings) => {
   newSettings.forEach(setting => {
