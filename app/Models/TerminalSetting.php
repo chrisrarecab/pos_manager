@@ -13,8 +13,8 @@ class TerminalSetting extends Model
     
     protected $fillable = [
         'id',
-        'client_terminal_id',
-        'cimrs_client_terminal_id',
+        'core_terminal_id',
+        'cirms_terminal_id ',
         'setting_id',
         'value',
         'last_modified_by',

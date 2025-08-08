@@ -201,40 +201,5 @@ const isLastStep = computed(() => step.value === props.stepLabels.length);
 	margin-top: 2rem;
 }
 
-.p-btn {
-	padding: 0.5rem 1.5rem;
-	border-radius: 0.25rem;
-	font-weight: 500;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	border: none;
-}
 
-.p-btn-next:hover:not(:disabled) {
-	background-color: var(--success);
-	color:  var(--text-light);
-}
-
-.p-btn-next:hover.disabled {
-	background-color: transparent !important;
-}
-
-.p-btn-next:disabled {
-	opacity: 0.65;
-	cursor: not-allowed;
-}
-
-.p-btn-prev {
-	color:  var(--text-muted);
-}
-
-.p-btn-prev:hover:not(:disabled) {
-	background-color: var(--text-muted-1);
-	color:  var(--text-dark);
-}
-
-.p-btn-prev.disabled {
-	opacity: 0.65;
-	cursor: not-allowed;
-}
 </style>

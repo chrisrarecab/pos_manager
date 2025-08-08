@@ -14,8 +14,8 @@ const API_BASE = '/api/v1/terminal/settings';
  */
 export const fetchClientDetails = async (clientId) => {
 	try {
-		const response = await axios.get(`/api/v1/client/details/${clientId}`, { headers: API_HEADERS });
-		return response.data.data;
+		const response = await axios.get(`/client/details`, { headers: API_HEADERS });
+		return response.data.values;
 	} catch (error) {
 		console.error('Error fetching client details:', error);
 		throw error;
@@ -41,9 +41,9 @@ export const fetchTerminalSettingsTabs = async () => {
  * @param {num} terminalId - CLient terminal Id
  * @returns {Promise<Array>} - Array of settings
  */
-export const fetchTerminalSettings = async (terminalId) => {
+export const fetchTerminalSettings = async (terminalId, softwareId) => {
 	try {
-		const response = await fetch(`${API_BASE}/?client_terminal_id=${terminalId}`);
+		const response = await fetch(`${API_BASE}/?clientTerminalId=${terminalId}&softwareId=${softwareId}`);
 		return await response.json();
 	} catch (error) {
 		console.error('Error fetching settings:', error);

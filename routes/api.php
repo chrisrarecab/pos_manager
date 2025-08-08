@@ -4,7 +4,7 @@ namespace  App\Http\Controllers;
 use App\Http\Controllers\Api\V1\SuperadminToolFlagsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Api\V1\TerminalSettingController;
-use App\Http\Controllers\Api\V1\ClientTerminalDetailController;
+use App\Http\Controllers\ClientBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\UserlistController;
@@ -42,9 +42,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/userBranchApi', 'index');
         Route::post('/userBranchEdit', 'edit');
     });
-
-    // Client Terminal Details
-    Route::get('/client/details/{id}', [ClientTerminalDetailController::class, 'getClientTerminalDetails']);
 
     // Terminal Settings
     Route::prefix('terminal/settings')->controller(TerminalSettingController::class)->group(function () {

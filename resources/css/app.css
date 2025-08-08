@@ -1,5 +1,9 @@
 :root {
 	--bg: #f9f6f1;
+  --bg-card: #f9f9f9;
+	--bg-disabled: #f0f0f0;
+	--form-disabled: #f9f9f9;
+  
 	--surface: #ffffff;
 	--primary: #b88c03;
 	--primary-hover: #a67602 ;
@@ -7,21 +11,24 @@
 	--primary-light: #f3d283;
 	--primary-accent: #cfa13f;
 	--primary-lighter: #fff8e1;
-	--accent: #3f77cf;
-	--text-dark: #333333;
+
 	--text-light: #f3fff4;
-	--text-darker: #212529;
+	--text-dark: #333333;
+	--text-darker: #1c2228;
 	--text-muted: #6c757d;
 	--text-muted-1: #cdcecf;
+
 	--border: #e0d6c1;
 	--shadow-active: #fef9ec;
+
 	--danger: #c0392b;
 	--success: #81c784;
+
 	--progress-tracker-complete: #b88c03;
 	--progress-tracker-current: #a67602;
 	--progress-tracker-pending: #e0dac2;
-	--bg-disabled: #f0f0f0;
-	--test: #2e8b57 ;
+
+  --table-striped-bg: #f8f9fa;
 
 	--btn: #ffc107;
 	--save-btn:#149b5c;
@@ -32,13 +39,32 @@
 html body {
     font-family: 'Poppins', sans-serif;
 }
+
+.custom-loading-grow-icon {
+  color: var(--primary) !important;
+}
+
+.loading-rectangle-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6); /* translucent */
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all; /* blocks interaction */
+}
+
 .debug {
     border: 1px solid red;
 }
 
 .center {
-    margin-left: auto;
-    margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-default {
@@ -233,8 +259,8 @@ html body {
 .custom-input:disabled,
 .custom-select:disabled,
 .multiselect--disabled  {
-  background-color: var(--bg-disabled) !important;
-  color: #999;
+  background-color: var(--form-disabled) !important;
+  color: var(--text-muted);
   border-color: #ddd;
   cursor: not-allowed;
   
@@ -342,40 +368,49 @@ html body {
 
 .custom-text-tooltip {
   position: absolute;
-  left: 50%;
-  z-index: 1;
+  left: var(--text-tooltip-left, 50%);
+  top: var(--text-tooltip-top, auto);
+  z-index: 999;
   display: inline-block;
-  max-width: var(--tooltip-text-width, 250px);
+  max-width: var(--tooltip-text-width, 280px);
   width: max-content;
-  background-color: var(--tooltip-bg, rgba(0, 0, 0, 0.85));
-  color: var(--tooltip-text-color, white);
-  padding: 8px 12px;
+  background-color: var(--tooltip-bg, rgba(0, 0, 0, 0.9));
+  color: var(--tooltip-text-color, #fff);
+  padding: 10px 14px;
   font-size: 0.85rem;
-  border-radius: 3px;
+  font-family: system-ui, sans-serif;
+  border-radius: 6px;
   white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  word-break: break-word;
   opacity: 0;
   visibility: hidden;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.3s ease, transform 0.3s ease;
   transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -80%));
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  -ms-border-radius: 3px;
-  -o-border-radius: 3px;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  -ms-border-radius: 6px;
+  -o-border-radius: 6px;
   -webkit-transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -80%));
   -moz-transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -80%));
   -ms-transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -80%));
   -o-transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -80%));
 }
 
+.custom-text-tooltip.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(var(--text-tooltip-translateX, -50%), var(--text-tooltip-translateY, -110%));
+}
+
 .custom-text-tooltip::after {
   content: "";
   position: absolute;
-  top: calc(100% - 2px);
+  top: calc(100% - 3px);
   z-index: -1;
-  left: var(--text-tooltip-left, 2%);
+  left: var(--text-tooltip-after-left, 2%);
   border-width: 6px;
   border-style: solid;
   border-color: var(--tooltip-bg, rgba(0, 0, 0, .85)) transparent transparent transparent;
@@ -424,4 +459,48 @@ html body {
 }
 .radioGroup { 
     width: 320px;
+}
+
+/* multi step form */
+
+.p-btn {
+	padding: 0.5rem 1.5rem;
+	border-radius: 0.25rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border: none;
+  font-size: 0.85rem;
+}
+
+small {
+  font-size: 0.5rem;
+  color: #666;
+}
+.p-btn-next:hover:not(:disabled) {
+	background-color: var(--success);
+	color:  var(--text-light);
+}
+
+.p-btn-next:hover.disabled {
+	background-color: transparent !important;
+}
+
+.p-btn-next:disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
+}
+
+.p-btn-prev {
+	color:  var(--text-muted);
+}
+
+.p-btn-prev:hover:not(:disabled) {
+	background-color: var(--text-muted-1);
+	color:  var(--text-dark);
+}
+
+.p-btn-prev.disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
 }

@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
+import AutoImport from 'unplugin-auto-import/vite'
+
 
 export default defineConfig({
     plugins: [
@@ -9,6 +11,11 @@ export default defineConfig({
             refresh: true,
         }),
         vue(),
+        AutoImport({
+            imports: ['vue'],
+            dirs: ['src/composables'],
+            dts: 'src/auto-imports.d.ts'
+        }),
     ],
     resolve: {
         alias: {

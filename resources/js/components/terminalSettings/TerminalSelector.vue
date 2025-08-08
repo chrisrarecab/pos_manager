@@ -1,26 +1,27 @@
 
 <template>
- <div class="col-4 d-flex flex-column select-div">
-  <div class="d-flex align-items-start">
-    <select
-      :value="modelValue"
-      class="terminal-select mb-2"
-      @change="onChange($event)"
-      :disabled="isLoading || hasUnsaved"
-    >
-      <option v-for="option in options" :key="option.value" :value="option.value">
-        {{ option.text }}
-      </option>
-    </select>
-    <span v-if="isLoading" class="loading-spinner ms-1 mt-2"></span>
-  </div>
+	<div class="col-4 d-flex flex-column select-div">
+		<div class="d-flex align-items-start">
+			<select class="terminal-select mb-2"
+				:value="modelValue"
+				@change="onChange($event)"
+				:disabled="isLoading || hasUnsaved || (options.length === 0 && !isLoading)"
+			>
+				<option disabled  value="" >
+					{{ isLoading ? 'Retrieving terminals...' : 'Choose a terminal' }}
+				</option>
 
-  <p v-if="hasUnsaved" class="text-danger small-label mb-0">
-    <em>*Please save or discard changes before switching terminals.</em>
-  </p>
-</div>
+				<option v-for="option in options" :key="option.value" :value="option.value">
+					{{ option.text }}
+				</option>
+			</select>
+			<span v-if="isLoading" class="loading-spinner ms-1 mt-2"></span>
+		</div>	
 
-  
+		<p v-if="hasUnsaved" class="text-danger small-label mb-0">
+			<em>*Please save or discard changes before switching terminals.</em>
+		</p>
+	</div>
 </template>
 
 <script>

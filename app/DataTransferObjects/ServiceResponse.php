@@ -2,7 +2,7 @@
 
 namespace App\DataTransferObjects;
 
-class RepositoryResponse
+class ServiceResponse
 {
     public function __construct(
         public bool $success,

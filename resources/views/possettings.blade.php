@@ -17,7 +17,8 @@
 @section('content')
 
 <div class="container">
- <terminal-settings-component :detail="{{ json_encode($detail) }}"></terminal-settings-component>
+    <session-component></session-component>
+    <terminal-settings-component></terminal-settings-component>
 </div>
 
 
