@@ -7,7 +7,13 @@ import AutoImport from 'unplugin-auto-import/vite'
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                'resources/css/app.css', 
+                'resources/js/app.js',
+                'resources/css/auth.css',
+                'resources/css/project-tools.css',
+                'resources/css/style.css',
+            ],
             refresh: true,
         }),
         vue(),
@@ -22,4 +28,8 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
+    build: {
+        minify: true,
+      },
+    base: './'
 });
