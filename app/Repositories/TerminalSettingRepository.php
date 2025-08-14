@@ -42,51 +42,7 @@ class TerminalSettingRepository
             $settingId = $settingData->id;
             $formElement = $settingData->form_element;
             $softwareId= $settingData->software_id;
-
-            if(!empty($setting['type']) && $setting['type'] == 'boolean'){
-                $booleanOptions = [
-                        ['option_name' => 'True', 'option_value' => '1'],
-                        ['option_name' => 'False', 'option_value' => '0'],
-                    ];
-
-                foreach ($booleanOptions as $opt) {
-                    $existingOption = SettingOption::where('setting_id', $settingId)
-                        ->where('value', $opt['option_value'])
-                        ->first();
-
-                    if (!$existingOption) {
-                        SettingOption::create([
-                            'setting_id' => $settingId,
-                            'name' => $opt['option_name'],
-                            'value' => $opt['option_value']
-                        ]);
-                    } 
-                }
-            }
                 
-            if(!empty($setting['options']) && is_array($setting['options'])){
-                foreach($setting['options'] as $opt){
-                    $optionName = $opt['option_name'] ?? null;
-                    $optionValue = $opt['option_value'] ?? null;
-
-                    if ($optionValue == null || $optionName == null){
-                        continue;
-                    }
-
-                    $existingOption = SettingOption::where('setting_id', $settingId)
-                        ->where('value', $optionValue)
-                        ->first();
-                
-                    if (!$existingOption) {
-                        SettingOption::create([
-                            'setting_id' => $settingId,
-                            'name' => $optionName,
-                            'value'=> $optionValue
-                        ]);
-                    }
-                }
-
-            }
 
             switch ($formElement) {
                 case 'radio_button':
@@ -202,10 +158,10 @@ class TerminalSettingRepository
         $result = [];
 
         try {
-            if ( $data['terminalNo'] <> 0 && $data['posType'] == 10 && !empty( $data['clientId']) && !empty( $data['locationId'])) {
+            if ( $data['terminalNo'] <> 0 && empty( $data['clientGroupId']) && empty( $data['clientNetworkId']) &&
+                    !empty( $data['clientId']) && !empty( $data['locationId'])) {
                 $cirmsClientTerminalId = implode('-', [
-                     $data['clientGroupId'],
-                     $data['clientNetworkId'],
+                     $data['clientId'],
                      $data['clientBranchId'],
                      $data['locationId'],
                      $data['terminalNo']
@@ -235,7 +191,8 @@ class TerminalSettingRepository
                         );
                     }
                 }
-            } else {
+            } elseif(!empty( $data['clientGroupId']) && !empty( $data['clientNetworkId']) 
+                && !empty( $data['posType'])  && empty( $data['clientId'])) {
                 $terminal = $this->clientTerminalDetails->getClientTerminalId(
                      $data['clientGroupId'],
                      $data['clientNetworkId'],
@@ -274,6 +231,14 @@ class TerminalSettingRepository
                         );
                     }
                 }
+            } else {
+                return new RepositoryResponse(
+                    success: false,
+                    message: 'Request failed.',
+                    error: 'Please check required field.',
+                    code: 422,
+                    data: []
+                );
             }
             return new RepositoryResponse(
                 success: true,

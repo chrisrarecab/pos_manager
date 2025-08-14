@@ -12,6 +12,8 @@ use App\Models\TerminalSettingIssue;
 class Setting extends Model
 {
     use HasFactory;
+    public $timestamps = false;
+
     public function user()
     {
         return $this->belongsTo(User::class, 'last_modified_by');
@@ -35,4 +37,5 @@ class Setting extends Model
             'issue_id'      // Foreign key in terminal_setting_issues pointing to issues
         );
     }
+    
 }
