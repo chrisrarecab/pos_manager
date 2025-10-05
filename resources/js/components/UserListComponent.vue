@@ -1,7 +1,7 @@
 <template>
     <div>
     <div class="d-flex justify-content-center align-items-center">
-        <p class="text-center network-name">{{ clients.length ? clients[0].clientGroupName.toUpperCase() : 'No clients available' }}</p>
+        <p class="text-center network-name">{{ clients.length ? clients[0].clientNetworkName : 'No clients available' }}</p>
     </div>
     
     <div class="row mt-3 div-size d-flex justify-content-center" >
@@ -117,12 +117,13 @@
         },
         props: {
             detail: {
-                type: String,
                 required: true
             }
         }, 
         mounted(){
-            this.fetchClient();
+            //this.fetchClient();
+            this.getUsers();
+            this.getNetworkInfo();
         },
         computed: {
             paginatedItems() {
@@ -132,9 +133,22 @@
             }
         },
         methods: {
+            getNetworkInfo() {
+                axios.get(`/api/clientbase/client/head/` + this.detail , {
+                
+                }).then((res) => {
+                    this.clients = res.data.map(item => ({
+                        clientGroupId: item['group_id'],
+                        clientGroupName: item['group_name'], 
+                        clientNetworkId: item['network_id'], 
+                        clientNetworkName: item['network_name'],
+                    }));
+                });
+                
+            },
             getUsers(){
                 // console.log(this.selected);
-                axios.get('/api/v1/userlistApi',{ params: { detail: this.selected } }).then(res=>{
+                axios.get('/api/v1/userlistApi',{ params: { networkId: this.detail } }).then(res=>{
                     this.users = res.data.users;
                     // console.log(this.users);
                     // this.users.forEach(item => {
@@ -206,17 +220,14 @@
             },
             editItem(item){
                 // console.log(item.id);
-                let url = "/userdetails?detail="+item.id;
+                let url = "/user?id="+item.id;
                 window.location.href = url;
             },
             addNewUser(){
-                const networkData = {
-                    clientNetworkId: this.detail,
-                };
                 axios.post('/api/v1/userAddApi', networkData).then(res=>{
                     // console.log(res.data);
                     //res.data is the id of the inserted new user
-                    let url = "/userdetails?detail="+res.data;
+                    let url = "/user?id="+res.data;
                     window.location.href = url;
                 })
                 .catch((error) => console.log(error));

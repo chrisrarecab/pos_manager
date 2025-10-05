@@ -26,15 +26,15 @@ Route::post('/login/cirms', [UserController::class, 'bypassLoginCirms'])->name('
 Route::post('/logout', [UserController::class, 'logout']);
 
 // Dashboard
-Route::get('/dashboard', function () {  return view('dashboard'); });
+Route::get('/dashboard', function () {  return view('possettings'); });
 
 // Users
-Route::get('/userlist', function (Request $request) {
-    $clientNetworkId = $request->query('detail', 'default_value');
-    return view('userlist', ['detail' => $clientNetworkId]);
+Route::get('/user/list', function (Request $request) {
+    return view('userlist');
 });
-Route::get('/userdetails', function (Request $request) {
-    $userId = $request->query('detail', 'default_value');
+Route::get('/user', function (Request $request) {
+    $default = session('userId');
+    $userId = $request->query('id', $default);
     return view('userdetails', ['detail' => $userId]);
 });
 

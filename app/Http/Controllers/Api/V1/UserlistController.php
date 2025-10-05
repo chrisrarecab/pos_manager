@@ -9,14 +9,13 @@ use Illuminate\Support\Facades\Hash;
 
 class UserlistController extends Controller
 {
-    //
+
     public function index(Request $request)
     {
-        $clientNetworkId = $request->input('detail');
-        // echo $clientNetworkId;
+        $clientNetworkId = $request->networkId;
 
         if (is_array($clientNetworkId)) {
-            $users = UserList::whereIn('client_network_id', $request->input('detail'))
+            $users = UserList::whereIn('client_network_id', $clientNetworkId)
             ->where('is_deleted', 0)
             ->select('id', 'full_name', 'username', 'status')
             ->get();
@@ -33,11 +32,13 @@ class UserlistController extends Controller
     
     public function add(Request $request)
     {
-        $insertId = userlist::insertGetId([
+        $insertId = Userlist::insertGetId([
             'full_name' => '',
             'username' => '',
             'status' => 2,
-            'client_network_id' => $request->clientNetworkId,
+            'client_group_id' => session('clientGroupId'),
+            'client_network_id' => session('clientNetworkId'),
+            'software_id' => session('software_id'),
             'is_deleted' => 1
         ]);
 

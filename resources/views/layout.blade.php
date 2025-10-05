@@ -60,7 +60,7 @@
             <form class="col-12 col-lg-auto mb-3 mb-lg-0">
                 <ul class="nav">
                     <li class="nav-item">
-                        <a href="#" class="nav-link link-dark text-decoration-underline px-2">
+                        <a href="/user" class="nav-link link-dark text-decoration-underline px-2">
                             @if(session('userId'))
                             <h6>Hi {{session('fullName')}}! <span> ({{session('clientGroupId')}})</span></h6>
                             

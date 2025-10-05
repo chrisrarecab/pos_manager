@@ -4,6 +4,8 @@ import Login from '../components/auth/Login.vue';
 import Register from '../components/auth/Register.vue';
 import RegisterCirms from '../components/auth/RegisterCirms.vue';
 import TerminalSettings from '../components/terminalSettings/TerminalSettingsComponent.vue';
+import UserListComponent from '../components/UserListComponent.vue';
+import UserDetailsComponent from '../components/UserDetailsComponent.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +50,16 @@ const router = createRouter({
         path: '/pos/settings',
         name: 'pos-settings',
         component: TerminalSettings,
+    },
+    {
+        path: '/user/list',
+        name: 'user-list',
+        component: UserListComponent,
+    },
+    {
+        path: '/user',
+        name: 'user',
+        component: UserDetailsComponent,
     },
   ]
 })

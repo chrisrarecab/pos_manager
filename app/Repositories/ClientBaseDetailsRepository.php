@@ -59,4 +59,13 @@ class ClientBaseDetailsRepository
             ->orderBy('CTD.referenceno', 'ASC')
             ->get();
     }
+
+    public function getClientDetails($id)
+    {
+        return $this->connection->table('clientgroup as CG')
+            ->select('CG.id as group_id', 'CG.name as group_name', 'CH.id as network_id', 'CH.name as network_name')
+            ->leftJoin('clienthead as CH', 'CH.clientgroupid', '=', 'CG.id')
+            ->where('CH.id', $id)
+            ->get();
+    }
 }

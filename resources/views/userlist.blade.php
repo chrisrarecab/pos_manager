@@ -11,7 +11,7 @@
         <h2>Users</h2>
     </div> -->
     
-    <user-list-component :detail="{{ json_encode($detail) }}"></user-list-component>
+    <user-list-component :detail="{{ session('clientNetworkId') }}"></user-list-component>
 </div>
 
 @endsection

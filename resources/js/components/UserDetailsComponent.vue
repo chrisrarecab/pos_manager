@@ -1,6 +1,6 @@
 <template>
 <div class="card" style="width:60rem; border:none;">
-    <b-link :to="{ path: 'userlist', query: { detail: this.network } }" class="d-flex justify-content-end">Return To User List</b-link>
+    <b-link href="user/list" class="d-flex justify-content-end">Return To User List</b-link>
 </div>
 
 <div class="card mx-auto" style="width: 60rem;">
@@ -119,6 +119,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import VueMultiselect from 'vue-multiselect';
 
 function getApiBaseUrl() {
@@ -269,30 +270,18 @@ export default {
             });
         },
         LoadBranches() {
-            const clientNetworkData = {
-                clientNetworkId: this.network
-            };
-
-            axios.post(apiUrl + '/UserList/GetBranchListByNetwork', clientNetworkData, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic bmVsc29mdDoxMjE1ODY='  
-                    }
-                })
-                .then((res) => { 
-                    this.branch = res.data;
-                    // console.log(this.branch);
-                    this.taggingOptions = this.branch;
-
-                    this.taggingOptions.push({
-                        id: 1,
-                        name: "ALL"
-                    });
-                    this.taggingOptions.sort((a,b) =>a.id - b.id);
-
-                    this.getPermissions(this.detail);
-            
+            axios.get(`/api/clientbase/branch/list/` + this.network, {
+                
+            }).then((res) => {
+                this.branch = res.data;
+                this.taggingOptions = this.branch;
+                this.taggingOptions.push({
+                    id: 1,
+                    name: "ALL"
                 });
+                this.taggingOptions.sort((a,b) =>a.id - b.id);
+                this.getPermissions(this.detail);
+            });
         },
         getSelectedBranches () {
             axios.get('/api/v1/userBranchApi',{ params: { detail: this.detail } }).then(res=>{

@@ -20,8 +20,8 @@ class Userlist extends Model
         'created_by', 
         'last_modified_date', 
         'last_modified_by', 
-        'is_deleted', '
-        software_id', 
+        'is_deleted', 
+        'software_id', 
         'remember_token'];
     
     protected $hidden = [

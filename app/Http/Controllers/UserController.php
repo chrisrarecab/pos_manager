@@ -102,6 +102,7 @@ class UserController extends Controller
         session()->put('userId', $user->id);
         session()->put('isAdmin', $isAdmin);
         session()->put('clientGroupId', $user->client_group_id);
+        session()->put('clientNetworkId', $user->client_network_id);
         session()->put('fullName', $user->full_name);
         session()->put('software_id', $user->software_id);
         session()->put('domain', $user->domain_name);

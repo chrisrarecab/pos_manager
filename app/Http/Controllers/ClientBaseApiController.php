@@ -112,6 +112,11 @@ class ClientBaseApiController extends Controller
         return $this->clientbase->getClientTerminalIds($id);
     }
 
+    public function getClientDetails($id)
+    {
+        return $this->clientbase->getClientDetails($id);
+    }
+
     public function postCancelPosPTU($id)
     {
         $endpoint = $this->getUrl("cancel_pos_ptu");

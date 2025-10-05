@@ -65,6 +65,7 @@ Route::controller(ClientBaseApiController::class)->group(function () {
     Route::get('/clientbase/network/list/{id}', 'getClientNetworkList');
     Route::get('/clientbase/branch/list/{id}', 'getClientBranchList');
     Route::get('/clientbase/terminal/list/{id}', 'getClientTerminalList');
+    Route::get('/clientbase/client/head/{id}', 'getClientDetails');
     Route::post('/clientbase/terminal/cancel-ptu/{id}', 'postCancelPosPTU');
 });
 
