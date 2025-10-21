@@ -11,4 +11,6 @@ class UserPermission extends Model
 
     public $timestamps = false;
     protected $table = 'user_permission';
+
+    protected $fillable = ['user_id', 'code'];
 }

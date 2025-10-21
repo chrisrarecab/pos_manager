@@ -5,11 +5,13 @@ namespace App\Services;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 use App\DataTransferObjects\ServiceResponse;
 use App\Http\Controllers\ClientBaseApiController;
 use App\Http\Controllers\CirmsApiController;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\User\StoreUserRequest;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 
 class UserService
@@ -17,12 +19,32 @@ class UserService
     public function __construct(
         protected UserRepositoryInterface $userRepo
     ) {}
-
-    public function bypassRegisterCirms(UserRequest $request): ServiceResponse
+    
+    public function login(array $data) : ServiceResponse
     {
-        $validated = $request->validated();
         try {
+            // DB::enableQueryLog();
+            $isSuccessful = Auth::attempt([
+                'username' => $data['username'],
+                'password' => $data['password'],
+                'software_id' => $data['softwareId'],
+                'domain_name' => $data['domainName'] ?? '',
+            ]);
+            
+            if (!$isSuccessful) {
+                return ServiceResponse::failure('Login failed.', 'Incorrect username or password', 400);
+            }
+        }
+        catch (Exception $e) {
+            Log::channel('systemErrorLog')->error('Login:' .$e->getMessage());
+            return ServiceResponse::failure('Login failed.', 'Authentication error', 500);
+        }
 
+        return ServiceResponse::success("Login successful.");
+    }
+    public function bypassRegisterCirms(array $validated): ServiceResponse
+    {
+        try {
             /* Checks if domain is valid */
             $api = app(ClientBaseApiController::class);
             $response = $api->verifyClientDomain($validated['domain']);
@@ -120,7 +142,6 @@ class UserService
             session()->put('domain', $user->domain_name);
             session()->put('software_id', $user->software_id);
             session()->save();
-
             return ServiceResponse::success('Login successful.', [
                 'redirect' => url('/dashboard'),
             ]);

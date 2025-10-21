@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
+use Inertia\Inertia;
 
 use App\Models\User;
 use App\Models\UserPermission;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Controllers\ClientBaseApiController;
 use App\Http\Controllers\CirmsApiController;
 use App\Services\UserService;
@@ -50,66 +52,39 @@ class UserController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        if ($request->user() && $request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete(); 
-        }
-
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        session()->flush();
-        return redirect('/login');
+        return redirect()->route('login');
+
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        switch ($request->project) {
-            case 1:
-                $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0, 'software_id' => 1];
-                break;
-            
-            case 2:
-                $credentials = ['username' => $request->username, 'password' => $request->password, 'status' => 1, 'is_deleted' => 0, 'software_id' => 2];
-                break;
+        $validated = $request->validated();
+        $response = $this->userService->login($validated);
 
-            default:
-                break;
+        if (!$response->success) {
+            throw ValidationException::withMessages([
+                'password' => $response->error,
+            ]);
         }
+        
+        $user = $request->user();
+        $request->session()->regenerate(); 
+     
+        session()->put([
+            'userId'         => $user->id,
+            'fullName'       => $user->full_name,
+            'username'       => $user->username,
+            'clientGroupId'  => $user->client_group_id,
+            'clientNetworkId'=> $user->client_network_id,
+            'domain'         => $user->domain_name,
+            'softwareId'     => $user->software_id,
+        ]);
+        return redirect()->route('dashboard')
+                         ->with('success', $response->message);
 
-        try {
-            $isSuccessful = Auth::attempt($credentials);
-            if (!$isSuccessful) {
-                return response()->json(['error' => 'Incorrect username or password'], 400);
-            }
-        }
-        catch (Exception $e) {
-            return response()->json(['error' => 'Authentication error (500)'], 500);
-        }
-
-        // if ($request->project == 2) {
-        //     $api = new ClientBaseApiController();
-        //     $api->verifyClientDomain($request->domain);
-        //     $cirmsApi = new CirmsApiController();
-        //     $cirmsApi->userAuthentication($request);
-        // }
-
-        $user = Auth::user();
-        $user->tokens()->delete();
-
-        $isAdmin = $this->userRepo->checkAdminPermission($user->id);
-
-        session()->regenerate();
-        session()->put('userId', $user->id);
-        session()->put('isAdmin', $isAdmin);
-        session()->put('clientGroupId', $user->client_group_id);
-        session()->put('fullName', $user->full_name);
-        session()->put('software_id', $user->software_id);
-        session()->put('domain', $user->domain_name);
-        session()->save();
-        return response()->json([
-                'user' => $user,
-                'token' => $user->createToken('auth_token')->plainTextToken,
-        ], 200);
     }
 
     public function registerBySecretKey(Request $request)
@@ -159,9 +134,10 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function bypassRegisterCirms(UserRequest $request)
+    public function bypassRegisterCirms(StoreUserRequest $request)
     {
-        $response = $this->userService->bypassRegisterCirms($request);
+        $validated = $request->validated();
+        $response = $this->userService->bypassRegisterCirms($validated);
 
         return response()->json([
             'isSuccessful' => $response->success,

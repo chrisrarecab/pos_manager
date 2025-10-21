@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 use App\Models\Setting;
 use App\Models\SettingTab;
 use App\Models\SettingOption;
 use App\Models\TerminalSetting;
 
-use App\Http\Requests\StoreTerminalSettingRequest;
+use App\Http\Requests\Terminal\UpdateTerminalSettingRequest;
+use App\Http\Requests\Terminal\StoreTerminalSettingRequest;
 use App\Http\Controllers\Controller;
 use App\Services\TerminalSettingService;
 use App\Services\ClientBaseService;
@@ -27,27 +29,15 @@ class TerminalSettingController extends Controller
     
     public function setClientTerminalDetails() 
     {
-         $softwareId = session('software_id');
-         
-         if($softwareId == 1) {
-            $response = $this->clientBaseService->getClientTerminalDetails();
+        $softwareId = session('softwareId');
+        $clientGroupId = session('clientGroupId');
+        
+        $response = $this->clientBaseService->getClientTerminalDetails($clientGroupId, $softwareId);
 
-            return response()->json([
-                'isSuccessful' => $response->success,
-                'values' => $response->values ?? null,
-                'message' => $response->message,
-                'errors' => $response->error ?? [],
-            ],  $response->statusCode);
-         } else {
-            $response = $this->cirmsApiService->getCirmsTerminalDetails();
-
-            return response()->json([
-                'isSuccessful' => $response->success,
-                'values' => $response->values ?? null,
-                'message' => $response->message,
-                'errors' => $response->error ?? [],
-            ],  $response->statusCode);
-         }
+        return Inertia::render('Settings/TerminalConfig', [
+            'clientTerminalDetails' => $response->values,
+        ]);
+        
     }
 
     public function storeTerminalSettings(StoreTerminalSettingRequest $request)
@@ -71,16 +61,17 @@ class TerminalSettingController extends Controller
 
     public function fetchTerminalSettings(Request $request) 
     {
-        $clientTerminalId = $request->query('clientTerminalId');
+        $terminalId = $request->query('terminalId');
         $softwareId = $request->query('softwareId');
-        $settings = $this->terminalSettingService->fetchTerminalSettings($clientTerminalId, $softwareId);
+        $settings = $this->terminalSettingService->fetchTerminalSettings($terminalId, $softwareId);
 
         return response()->json($settings);
     }     
     
-    public function updateTerminalSettings(Request $request) 
+    public function updateTerminalSettings(UpdateTerminalSettingRequest $request) 
     {
-        $response = $this->terminalSettingService->updateTerminalSettings($request);
+        $validated = $request->validated();
+        $response = $this->terminalSettingService->updateTerminalSettings($validated);
 
         return response()->json([
             'isSuccessful' => $response->success,
@@ -90,9 +81,11 @@ class TerminalSettingController extends Controller
         ],  $response->statusCode);
     }
 
-    public function applySettingsToMultipleTerminals(Request $request) 
+    public function applySettingsToMultipleTerminals(UpdateTerminalSettingRequest $request) 
     {
-        $response = $this->terminalSettingService->applySettingsToMultipleTerminals($request);
+        set_time_limit(300); 
+        $validated = $request->validated();
+        $response = $this->terminalSettingService->applySettingsToMultipleTerminals($validated);
         return response()->json([
             'isSuccessful' => $response->success,
             'values' => $response->values ?? null,

@@ -4,14 +4,17 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 use Carbon\Carbon;
 
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Repositories\Interfaces\TerminalSettingInterface;
-use App\Repositories\Interfaces\ClientBaseRepositoryInterface;
+use App\Repositories\Interfaces\ClientBaseDetailsRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Repositories\TerminalSettingRepository;
-use App\Repositories\ClientBaseRepository;
+use App\Repositories\ClientBaseDetailsRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(TerminalSettingInterface::class, TerminalSettingRepository::class);
-        $this->app->bind(ClientBaseRepositoryInterface::class, ClientBaseRepository::class);
+        $this->app->bind(ClientBaseDetailsRepositoryInterface::class, ClientBaseDetailsRepository::class);
     }
 
     /**
@@ -32,5 +35,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Carbon::setLocale('en');
         date_default_timezone_set(config('app.timezone'));
+
+        // Print SQL query
+        DB::listen(function ($query) {
+            Log::channel('debugging')->debug('SQL: '.$query->sql, $query->bindings);
+        });
+
+
     }
 }

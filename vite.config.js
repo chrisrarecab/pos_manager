@@ -1,35 +1,25 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
-import AutoImport from 'unplugin-auto-import/vite'
-
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
-    plugins: [
-        laravel({
-            input: [
-                'resources/css/app.css', 
-                'resources/js/app.js',
-                'resources/css/auth.css',
-                'resources/css/project-tools.css',
-                'resources/css/style.css',
-            ],
-            refresh: true,
-        }),
-        vue(),
-        AutoImport({
-            imports: ['vue'],
-            dirs: ['src/composables'],
-            dts: 'src/auto-imports.d.ts'
-        }),
-    ],
-    resolve: {
-        alias: {
-            vue: 'vue/dist/vue.esm-bundler.js',
-        },
+  plugins: [
+    laravel({
+      input: ['resources/js/main.tsx'],
+      refresh: true,
+    }),
+    react(),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'resources/js'),
     },
-    build: {
-        minify: true,
-      },
-    base: './'
+  },
+  build: {
+    outDir: 'public/build',
+    emptyOutDir: true,
+    minify: true,
+  },
+  base: '/',
 });

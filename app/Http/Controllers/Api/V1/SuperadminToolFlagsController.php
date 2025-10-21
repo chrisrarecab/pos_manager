@@ -5,9 +5,9 @@ use App\Http\Resources\superadmin_tool_flagsResource;
 
 use App\Models\superadmin_tool_flags;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Storesuperadmin_tool_flagsRequest;
-use App\Http\Requests\Updatesuperadmin_tool_flagsRequest;
-use App\Http\Requests\Getsuperadmin_tool_flagsRequest;
+use App\Http\Requests\SuperadminTool\Storesuperadmin_tool_flagsRequest;
+use App\Http\Requests\SuperadminTool\Updatesuperadmin_tool_flagsRequest;
+use App\Http\Requests\SuperadminTool\Getsuperadmin_tool_flagsRequest;
 use App\Http\Requests\SuperadminTool\StoreCancelPTURequest;
 use App\Http\Requests\SuperadminTool\GetCancelPTURequest;
 use App\Http\Requests\SuperadminTool\UpdateSuperadminToolRequest;

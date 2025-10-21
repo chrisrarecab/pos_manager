@@ -39,30 +39,24 @@ class TerminalSettingRepository implements TerminalSettingInterface
     {
         return Setting::where('software_id', $softwareId)
             ->where('is_deleted', 0)
-            ->whereHas('terminalSetting', function ($query) use ($terminalId, $softwareId) {
-                if ($softwareId === '1') {
-                    $query->where('core_terminal_id', $terminalId);
-                } elseif ($softwareId === '2') {
-                    $query->where('cirms_terminal_id', $terminalId);
-                }
+            ->whereHas('terminalSetting', function ($q) use ($terminalId) {
+                $q->where('terminal_id', $terminalId);
             })
-            ->with(['options', 'issues', 'terminalSetting' => function ($q) use ($terminalId, $softwareId) {
-                if ($softwareId === '1') {
-                    $q->where('core_terminal_id', $terminalId);
-                } elseif ($softwareId === '2') {
-                    $q->where('cirms_terminal_id', $terminalId);
-                }
-            }, 'user:id,full_name'])
+            ->with([
+                'options:id,setting_id,name,value',
+                'issues:terminal_id,setting_id,issue_id',
+                'user:id,full_name',
+                'terminalSetting' => fn($q) => $q->where('terminal_id', $terminalId)
+            ])
             ->get();
     }
 
-    public function upsertSetting(array $row, $coreTerminalId, $cirmsTerminalId): void
+    public function upsertSetting(array $row, $terminalId): void
     {
         TerminalSetting::updateOrInsert(
             [
-                'core_terminal_id' => $coreTerminalId,
+                'terminal_id' => $terminalId,
                 'setting_id' => $row['setting_id'],
-                'cirms_terminal_id' => $cirmsTerminalId,
             ],
             [
                 'value' => $row['value'],
@@ -71,14 +65,5 @@ class TerminalSettingRepository implements TerminalSettingInterface
             ]
         );
     }
-
-    public function checkClientTerminalId($clientTerminalId): ?TerminalSetting
-    {
-        return TerminalSetting::where('core_terminal_id', $clientTerminalId)
-            ->orWhere('cirms_terminal_id', $clientTerminalId)
-            ->first();
-    }
-    
-
 }
  

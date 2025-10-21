@@ -4,7 +4,6 @@ namespace  App\Http\Controllers;
 use App\Http\Controllers\Api\V1\SuperadminToolFlagsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Api\V1\TerminalSettingController;
-use App\Http\Controllers\ClientBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\UserlistController;
@@ -52,7 +51,7 @@ Route::prefix('v1')->group(function () {
 
     // Terminal Settings
     Route::prefix('terminal/settings')->controller(TerminalSettingController::class)->group(function () {
-        Route::get('/fetch/tabs', 'fetchTerminalSettingsTabs');
+        Route::get('/tabs', 'fetchTerminalSettingsTabs');
         Route::get('/', 'fetchTerminalSettings');
         Route::post('/', 'storeTerminalSettings');
         Route::post('/update', 'updateTerminalSettings');
@@ -70,8 +69,6 @@ Route::controller(ClientBaseApiController::class)->group(function () {
 
 Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'registerBySecretKey');
-    Route::post('/login', 'login');
-    Route::post('/logout', 'logout');
     Route::get('/checkUserSession', 'checkAuth');
     Route::get('/getSession', 'getSession');
     Route::post('/register/cirms', 'bypassRegisterCirms');

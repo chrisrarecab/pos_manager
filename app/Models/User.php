@@ -7,37 +7,46 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 use App\Models\Setting;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'full_name',
-        'username',
-        'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    protected $fillable = [
+        'full_name',
+        'username',
+        'password',
+        'created_by',
+        'created_date',
+        'last_modified_by',
+        'last_modified_date'
+    ];
+
+    public $timestamps = false;
     public function setting()
     {
         return $this->hasOne(Setting::class);
     }
 
-    public $timestamps = false;
+    public function permissions()
+    {
+        return $this->hasMany(UserPermission::class, 'user_id');
+    }
+
+    /**
+     * Accessor
+    */
+    protected function isAdmin(): Attribute
+    {
+        return Attribute::get(
+            fn () => $this->permissions->contains('code', '100')
+        );
+    }
 }
