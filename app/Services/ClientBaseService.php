@@ -3,39 +3,33 @@
 namespace App\Services;
 
 use App\DataTransferObjects\ServiceResponse;
-use App\Repositories\Interfaces\ClientBaseRepositoryInterface;
+use App\Repositories\Interfaces\ClientBaseDetailsRepositoryInterface;
 
 class ClientBaseService
 {
     public function __construct(
-        protected ClientBaseRepositoryInterface $clientBaseRepo
+        protected ClientBaseDetailsRepositoryInterface $clientBaseRepo
     ) {}
 
-    public function getClientTerminalDetails(): ServiceResponse
+    public function getClientTerminalDetails($clientGroupId, $softwareId): ServiceResponse
     {
         try {
-            $clientGroupId = session('clientGroupId');
+           
             if (!$clientGroupId) {
                  return ServiceResponse::failure('Missing client group ID from session');
             }
             
-            $result = $this->clientBaseRepo->getTerminalDetails($clientGroupId);
+            $result = $this->clientBaseRepo->getTerminalDetails($clientGroupId, $softwareId);
             return ServiceResponse::success('Client terminal details retrieved successfully', $result);
         } catch (\Throwable $e) {
             return ServiceResponse::failure('Unexpected error occurred', $e->getMessage());
         }
     }
 
-    public function getCoreTerminalId($clientGroupId, $clientNetworkId, $clientBranchId, $terminalNo, $posType): ServiceResponse
+    public function getClientTerminalIdByUuid($uuid) : ServiceResponse
     {
-        try {
-            $terminal = $this->clientBaseRepo->getCoreTerminalId(
-                $clientGroupId,
-                $clientNetworkId,
-                $clientBranchId,
-                $terminalNo,
-                $posType
-            );
+         try {
+            $terminal = $this->clientBaseRepo->getClientTerminalIdByUuid($uuid);
 
             if (!$terminal) {
                 return ServiceResponse::failure('Terminal not found');
@@ -46,4 +40,7 @@ class ClientBaseService
             return ServiceResponse::failure('Unexpected error occurred', $e->getMessage());
         }
     }
+
+    
+   
 }

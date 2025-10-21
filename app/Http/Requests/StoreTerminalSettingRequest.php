@@ -33,24 +33,14 @@ class StoreTerminalSettingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clientGroupId' => 'sometimes|integer',
-            'clientNetworkId' => 'sometimes|integer',
-            'clientBranchId' => 'required|integer',
-            'terminalNo' => 'required|integer',
-            'posType' => 'sometimes|integer',
-            'clientId' => 'sometimes|integer',
-            'locationId' => 'sometimes|integer',
+            'uuid' => 'required|uuid',
 
             'settings' => 'nullable|array',
             'settings.*.name' => 'required_with:settings|string',
             'settings.*.value' => 'nullable',
             'settings.*.type' => 'nullable',
 
-            'terminalConnections' => 'sometimes|array'
-            // 'settings.*.options' => 'nullable|array',
-            // 'settings.*.options.*.option_name' => 'required_with:settings|string',
-            // 'settings.*.options.*.option_value' => 'required_with:settings|string',
-
+            'terminalConnections' => 'nullable|array',
         ];
     }
 }

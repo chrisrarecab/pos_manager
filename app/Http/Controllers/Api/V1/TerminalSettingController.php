@@ -27,27 +27,17 @@ class TerminalSettingController extends Controller
     
     public function setClientTerminalDetails() 
     {
-         $softwareId = session('software_id');
-         
-         if($softwareId == 1) {
-            $response = $this->clientBaseService->getClientTerminalDetails();
+        $softwareId = session('software_id');
+        $clientGroupId = session('clientGroupId');
 
-            return response()->json([
-                'isSuccessful' => $response->success,
-                'values' => $response->values ?? null,
-                'message' => $response->message,
-                'errors' => $response->error ?? [],
-            ],  $response->statusCode);
-         } else {
-            $response = $this->cirmsApiService->getCirmsTerminalDetails();
+        $response = $this->clientBaseService->getClientTerminalDetails($clientGroupId, $softwareId);
 
-            return response()->json([
-                'isSuccessful' => $response->success,
-                'values' => $response->values ?? null,
-                'message' => $response->message,
-                'errors' => $response->error ?? [],
-            ],  $response->statusCode);
-         }
+        return response()->json([
+            'isSuccessful' => $response->success,
+            'values' => $response->values ?? null,
+            'message' => $response->message,
+            'errors' => $response->error ?? [],
+        ],  $response->statusCode);
     }
 
     public function storeTerminalSettings(StoreTerminalSettingRequest $request)

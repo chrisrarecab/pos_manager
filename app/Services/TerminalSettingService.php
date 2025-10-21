@@ -10,12 +10,12 @@ use App\Models\TerminalSetting;
 
 use App\DataTransferObjects\ServiceResponse;
 use App\Repositories\Interfaces\TerminalSettingInterface;
-use App\Repositories\Interfaces\ClientBaseRepositoryInterface;
+use App\Repositories\Interfaces\ClientBaseDetailsRepositoryInterface;
 
 class TerminalSettingService
 {
     public function __construct(
-        protected ClientBaseRepositoryInterface $clientBaseRepo,
+        protected ClientBaseDetailsRepositoryInterface $clientBaseRepo,
         protected TerminalSettingInterface $terminalSettingRepo
     ) {}
 
@@ -24,7 +24,7 @@ class TerminalSettingService
     Converts value to setting_option_id,
     Creates the setting option if it doesn't exist.
     */
-    public function processSettings(array $settings): array
+    public function processSettings(array $settings): ServiceResponse
     {
         $result = [];
         foreach ($settings as $setting) {
@@ -48,9 +48,6 @@ class TerminalSettingService
             $softwareId= $settingData->software_id;
 
             switch ($formElement) {
-                case 'radio_button':
-                    $settingValue = $setting['value'];
-                    break;
                 case 'dropdown':
                     $settingValue = $this->terminalSettingRepo->getDropdownOptionId($setting['value'], $settingId);
                     break;  
@@ -67,14 +64,13 @@ class TerminalSettingService
             $result[] = [
                 'setting_id' => $settingId,
                 'value' => $settingValue,
-                'original_value' => $setting['value'],
-                'form_element' => $formElement
             ];
         }
 
-         return [
-            'result' => $result
-        ]; 
+        return ServiceResponse::success(
+            'Settings processed successfully.',
+            ['result' => $result]
+        );
     }
 
     public function fetchTerminalSettings($clientTerminalId, $softwareId)
@@ -88,7 +84,6 @@ class TerminalSettingService
 
             switch ($setting->form_element) {
                 case 'dropdown':
-                case 'radio_button':
                     $resolvedValue = $setting->options->firstWhere('id', (int) $rawValue)?->id ?? null;
                     break;
                 case 'multi_select_dropdown':
@@ -123,29 +118,26 @@ class TerminalSettingService
                 'terminal_setting'   => $ts,
                 'user'               => $setting->user,
 
-                'raw_value'          => $rawValue,
                 'value'              => $resolvedValue,
             ];
         });
     }
 
-    // store uses name and value whlie update uses setting id and setting option id
     public function storeTerminalSettings(array $data) : ServiceResponse
     {
-        $cirmsTerminalId = '';
         $result = [];
-
         try {
-            if ( !empty($data['terminalNo']) && empty($data['clientGroupId']) && empty($data['clientNetworkId']) 
-                && !empty( $data['clientId']) && !empty( $data['locationId'])) {
+            $uuid = $data['uuid'];
+            $identifyUuid = $this->clientBaseRepo->getClientTerminalIdByUuid($uuid);
 
+            if (!$identifyUuid) {
+                return ServiceResponse::failure( 'Request failed.', 'Client terminal not found.', 404);
+            }
+
+            // CIRMS
+            if ($identifyUuid->pos_type == 10) {
                 $coreTerminalId = 0;
-                $cirmsTerminalId = implode('-', [
-                     $data['clientId'],
-                     $data['clientBranchId'],
-                     $data['locationId'],
-                     $data['terminalNo']
-                ]);
+                $cirmsTerminalId = $identifyUuid->id;
 
                 if (!empty($data['settings'])) {
                     foreach ($data['settings'] as &$setting) {
@@ -153,58 +145,73 @@ class TerminalSettingService
                     }
                     unset($setting); 
 
-                    $data['settings'][] = [
-                        'name' => 'terminalConnections',
-                        'value' => json_encode($data['terminalConnections']),
-                        'software_id' => 2
-                    ];
+                    if (!empty($data['terminalConnections'])) {
+                        $hasTerminalConnections = collect($data['settings'])->contains(function ($setting) {
+                            return isset($setting['name']) && $setting['name'] === 'terminalConnections';
+                        });
 
-                    $processed = $this->processSettings( $data['settings']);
-                    $result = $processed['result'];
-                    
+                        if (!$hasTerminalConnections) {
+                            $data['settings'][] = [
+                                'name' => 'terminalConnections',
+                                'value' => json_encode($data['terminalConnections']),
+                                'software_id' => 2
+                            ];
+                        }
+                    }
+
+                   $processed = $this->processSettings($data['settings']);
+
+                    if (!$processed->success) {
+                        return $processed; 
+                    }
+
+                    $result = $processed->values['result'];
 
                     foreach ($result as $row) {
                         $this->terminalSettingRepo->upsertSetting($row, $coreTerminalId, $cirmsTerminalId);
                     }
                 }
-            } elseif (!empty( $data['clientGroupId']) && !empty( $data['clientNetworkId']) && !empty( $data['posType'])) {
-                $terminal = $this->clientBaseRepo->getCoreTerminalId(
-                     $data['clientGroupId'],
-                     $data['clientNetworkId'],
-                     $data['clientBranchId'],
-                     $data['terminalNo'],
-                     $data['posType']
-                );
-                
+            } else {
+            // CORE
                 $cirmsTerminalId = 0;                
-                $coreTerminalId = $terminal->id;
-                    
-                if ($terminal && $terminal->pos_type == 10) {
-                    return ServiceResponse::failure( 'Request failed.', 'Terminal details belong to CIRMS. Please specify both location_id and client_id.', 400);
-                }
-                
-                if (!$terminal) {
-                    return ServiceResponse::failure( 'Request failed.', 'Client terminal not found.', 404);
-                }
-               
+                $coreTerminalId = $identifyUuid->id;
+
                 if (!empty($data['settings'])) {
                     foreach ($data['settings'] as &$setting) {
                         $setting['software_id'] = 1;
                     }
-                    
+
+                    if (!empty($data['terminalConnections'])) {
+                        $hasTerminalConnections = collect($data['settings'])->contains(function ($setting) {
+                            return isset($setting['name']) && $setting['name'] === 'terminalConnections';
+                        });
+
+                        if (!$hasTerminalConnections) {
+                            $data['settings'][] = [
+                                'name' => 'terminalConnections',
+                                'value' => json_encode($data['terminalConnections']),
+                                'software_id' => 1
+                            ];
+                        }
+                    }
+
                     $processed = $this->processSettings( $data['settings']);
-                    $result = $processed['result'];
+                    if (!$processed->success) {
+                        return $processed;
+                    }
+
+                    $result = $processed->values['result'];
 
                     foreach ($result as $row) {
                         $this->terminalSettingRepo->upsertSetting($row, $coreTerminalId, $cirmsTerminalId);
                     }
                 }
+
             }
             return ServiceResponse::success("Terminal settings saved successfully.");
         } catch (\Throwable $e) {
             return ServiceResponse::failure('Something went wrong.', $e->getMessage(), 500);
         }
-
     }
 
     public function updateTerminalSettings(Request $request) 

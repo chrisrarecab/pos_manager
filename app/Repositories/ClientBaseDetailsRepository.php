@@ -2,8 +2,9 @@
 
 namespace App\Repositories;
 use Illuminate\Support\Facades\DB;
+use App\Repositories\Interfaces\ClientBaseDetailsRepositoryInterface;
 
-class ClientBaseDetailsRepository
+class ClientBaseDetailsRepository implements ClientBaseDetailsRepositoryInterface
 {
     public function __construct()
     {
@@ -59,4 +60,50 @@ class ClientBaseDetailsRepository
             ->orderBy('CTD.referenceno', 'ASC')
             ->get();
     }
+    
+    public function getTerminalDetails($clientGroupId, $softwareId)
+    {
+       $query = $this->connection->table('clientgroup as CG')
+        ->select(
+            'CTD.id as clientTerminalId',
+            'CG.id as clientGroupId',
+            'CG.name as clientGroupName',
+            'CH.id as clientNetworkId',
+            'CH.name as clientNetworkName',
+            'CD.branchId',
+            'CD.branchName',
+            'CTD.referenceno as terminalNo'
+        )
+        ->leftJoin('clienthead as CH', 'CH.clientgroupid', '=', 'CG.id')
+        ->leftJoin('clientdetails as CD', 'CD.clientid', '=', 'CH.id')
+        ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
+        ->where('CG.id', $clientGroupId)
+        ->where('CD.branchname', '!=', '')
+        ->where('CTD.referenceno', '<>', 0)
+        ->where('CTD.show', '<>', 0)
+        ->where('CTD.status', '<>', 0)
+        ->orderBy('CG.name', 'ASC');
+
+        if ($softwareId == 1) {
+            $query->where('CTD.pos_type', '<>', 10);
+        } else {
+            $query->where('CTD.pos_type', '=', 10);
+        }
+        
+        return $query->get();
+    }
+
+    public function getClientTerminalIdByUuid(string $uuid): ?object
+    {
+        return $this->connection->table('clientgroup as CG')
+            ->leftJoin('clienthead as CH', 'CH.clientgroupid', '=', 'CG.id')
+            ->leftJoin('clientdetails as CD', 'CD.clientid', '=', 'CH.id')
+            ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
+            ->where('CTD.uuid', $uuid)
+            ->orderBy('CTD.referenceno', 'ASC')
+            ->select('CTD.id', 'CTD.pos_type',  'CTD.id as clientTerminalId', 'CG.id as clientGroupId', 'CG.name as clientGroupName', 'CH.id as clientNetworkId', 
+               'CH.name as clientNetworkName', 'CD.branchId', 'CD.branchName', 'CTD.referenceno as terminalNo',)
+            ->first();
+    }
+
 }

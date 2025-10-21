@@ -635,12 +635,12 @@ const submitTerminalSettings = async (saveType) => {
 				}
 
 					payload = {
-					func: 'save',
-					client_terminal_id: selectedTerminal.value,
-					settings: changedSettings.map(setting => ({
-						setting_id: setting.id,
-						value: setting.value,
-					})),
+						func: 'save',
+						client_terminal_id: selectedTerminal.value,
+						settings: changedSettings.map(setting => ({
+							setting_id: setting.id,
+							value: setting.value,
+						})),
 				};
 
 				await updateTerminalSettings(payload);

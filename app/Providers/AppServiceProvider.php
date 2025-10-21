@@ -8,10 +8,10 @@ use Carbon\Carbon;
 
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Repositories\Interfaces\TerminalSettingInterface;
-use App\Repositories\Interfaces\ClientBaseRepositoryInterface;
+use App\Repositories\Interfaces\ClientBaseDetailsRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Repositories\TerminalSettingRepository;
-use App\Repositories\ClientBaseRepository;
+use App\Repositories\ClientBaseDetailsRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(TerminalSettingInterface::class, TerminalSettingRepository::class);
-        $this->app->bind(ClientBaseRepositoryInterface::class, ClientBaseRepository::class);
+        $this->app->bind(ClientBaseDetailsRepositoryInterface::class, ClientBaseDetailsRepository::class);
     }
 
     /**
