@@ -119,7 +119,7 @@ const TerminalConfig = () => {
 			if (originalValue !== currentValue){
 				changes.push({
 					setting_id: setting.id,
-					value: setting.value
+					value: currentValue
 				})
 			}
 		})
