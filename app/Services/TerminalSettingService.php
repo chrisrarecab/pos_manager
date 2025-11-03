@@ -19,11 +19,6 @@ class TerminalSettingService
         protected TerminalSettingInterface $terminalSettingRepo
     ) {}
 
-    /*
-    Handle settings,
-    Converts value to setting_option_id,
-    Creates the setting option if it doesn't exist.
-    */
     public function processSettings(array $settings): ServiceResponse
     {
         $result = [];
@@ -128,7 +123,7 @@ class TerminalSettingService
         $result = [];
         try {
             $uuid = $data['uuid'];
-            $identifyUuid = $this->clientBaseRepo->getterminalIdByUuid($uuid);
+            $identifyUuid = $this->clientBaseRepo->getClientTerminalIdByUuid($uuid);
 
             if (!$identifyUuid) {
                 return ServiceResponse::failure( 'Request failed.', 'Client terminal not found.', 404);
@@ -242,19 +237,15 @@ class TerminalSettingService
                 return ServiceResponse::failure('Request failed.', 'No settings provided.', 400);
             }
 
-             $terminalIds = $data['terminalId'];
+            $terminalIds = $data['terminalId'];
             
             foreach ($terminalIds as $terminalId) {
                 foreach ($settings as $row) {
                     $this->terminalSettingRepo->upsertSetting($row, $terminalId);
                 }
             }
-    
 
-            // if (!is_array($coreTerminalIds) || empty($coreTerminalIds)) {
-            //     return ServiceResponse::failure('Request failed.', 'No terminal IDs provided.', 400);
-            // }
-       return ServiceResponse::success('Settings applied to multiple terminals successfully.');
+            return ServiceResponse::success('Settings applied to multiple terminals successfully.');
 
         } catch (\Throwable $e) {
             return ServiceResponse::failure('Something went wrong.', $e->getMessage(), 500);

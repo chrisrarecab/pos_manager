@@ -1,24 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  /* -------------------- Base Colors -------------------- */
+  /* -------------------- Semantic Colors -------------------- */
   --color-header: #5a6a7f;
   --color-sidebar: #34495e;
   --color-accent: #e74c3c;
+  
   --color-info: #237daa;
   --color-success: #018474;
 
-  /* -------------------- Semantic Colors -------------------- */
-  --color-primary: #34495e;           /* Main brand color */
+  /* --------------------  -------------------- */
+  --color-primary: #34495e;           
+  --color-primary-light: #5a6a7f;
   --color-primary-hover: #2c3e50;
   --color-primary-active: #2a3645;
-  --color-primary-light: #e5e7eb;
+  --color-primary-bg: #e5e7eb;
 
-  --color-secondary: #c94440;         /* Accent / secondary actions */
-  --color-secondary-hover: #b52b27;
-  --color-secondary-active: #9f221f;
-  --color-secondary-light: #e27c78;
-
+  --color-accent-active: #e74c3c;
+  --color-accent-hover: #c0392b;
   /* -------------------- Header -------------------- */
   --color-header-hover: #4c5a6d;
   --color-header-active: #3e4a5b;
@@ -30,8 +29,6 @@
   --color-sidebar-light: #4f6275;
 
   /* -------------------- Accent & Add -------------------- */
-  --color-accent-active: #b52b27;
-  --color-accent-light: #e27c78;
 
   --color-add-hover: #b83226;
   --color-add-active: #cf3d2f;
@@ -52,11 +49,6 @@
   --button-info-active: #1d6b90;
 
   
-  --color-sidebar: #34495e;
-  --color-sidebar-light: #5a6a7f;
-  --color-sidebar-dark: #22303d;
-  --color-sidebar-accent: #2c3e50;
-  --color-sidebar-extra-light: #7f8c9d;
 
 
 }
