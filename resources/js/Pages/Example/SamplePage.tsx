@@ -1,4 +1,4 @@
-import Card from "../../Components/Card";
+import Card from "@/Components/Card";
 import axios from "@/Config/axios"; 
 import { usePage } from "@inertiajs/react";
 export default function Sample() {
@@ -6,7 +6,7 @@ export default function Sample() {
   console.log(props);
   const payload = {
     domain: 'dannyiloilo.cirms.ph',
-    userid: '123',
+    userId: '123',
     username: 'admin',
     fullname: 'admin',
     password: 'admin123',

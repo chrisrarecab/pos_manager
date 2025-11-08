@@ -20,7 +20,7 @@ class ServiceResponse
 
     public static function failure(string $message = '', mixed $error = null, int $statusCode = 500): self
     {
-        return new self(false, null, $message, $error ?? [], $statusCode);
+        return new self(false, [], $message, $error ?? [], $statusCode);
     }
 }
 

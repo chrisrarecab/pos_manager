@@ -153,7 +153,7 @@ class UserController extends Controller
 
         return response()->json([
             'isSuccessful' => $response->success,
-            'values' => $response->values ?? null,
+            'values' => $response->values,
             'message' => $response->message,
             'errors' => $response->error ?? [],
         ],  $response->statusCode);

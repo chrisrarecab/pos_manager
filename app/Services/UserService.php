@@ -56,10 +56,8 @@ class UserService
 
             /* Checks if user exist*/
             $existingUser = $this->userRepo->findExistingUser([
-                'client_group_id' => $clientGroupId,
-                'client_network_id' => $clientNetworkId,
                 'domain' => $validated['domain'],
-                'userid' => $validated['userid'],
+                'userid' => $validated['userId'],
                 'username' => $validated['username']
             ]);
 
@@ -80,7 +78,7 @@ class UserService
 
             /*  If user doesn't exist, check if username exist */
             if ($this->userRepo->isUsernameUsed($validated['username'], $clientNetworkId)) {
-                return ServiceResponse::failure("Request failed", "Username already used in this client network.");
+                return ServiceResponse::failure("Request failed", "This username is already in use within this client network.");
             }
 
             $user = $this->userRepo->createUser([
@@ -96,7 +94,7 @@ class UserService
                 'password' => Hash::make($validated['password']),
                 'software_id' => 2,
                 'domain_name' => $validated['domain'],
-                'cirms_userid' => $validated['userid'],
+                'cirms_userid' => $validated['userId'],
             ]);
 
             if (isset($validated['admin']) || $validated['username'] === 'admin') {
@@ -119,13 +117,11 @@ class UserService
     {
         try {
             $token = $request->bearerToken();
-
             if (!$token) {
                 return ServiceResponse::failure('Request failed.', 'Token is required.', 400);
             }
 
             $user = $this->userRepo->findUserByToken($token);
-
             if (!$user) {
                 return ServiceResponse::failure('Request failed.', 'Invalid or expired token.', 401);
             }
@@ -142,6 +138,7 @@ class UserService
             session()->put('domain', $user->domain_name);
             session()->put('software_id', $user->software_id);
             session()->save();
+            
             return ServiceResponse::success('Login successful.', [
                 'redirect' => url('/dashboard'),
             ]);

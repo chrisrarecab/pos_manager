@@ -10,7 +10,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'domain'   => 'required|string|max:255',
-            'userid'   => 'required|string|max:100',
+            'userId'   => 'required|string|max:100',
             'username' => 'required|string|alpha_dash|min:3|max:50',
             'fullname' => 'required|string|max:100',
             'password' => 'required|string|min:6',
