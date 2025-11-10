@@ -15,9 +15,7 @@ class UserRepository implements UserRepositoryInterface
 {
     public function findExistingUser(array $data): ?User
     {
-        return User::where('client_group_id', $data['client_group_id'])
-            ->where('client_network_id', $data['client_network_id'])
-            ->where('domain_name', $data['domain'])
+        return User::where('domain_name', $data['domain'])
             ->where('cirms_userid', $data['userid'])
             ->where('username', $data['username'])
             ->where('software_id', 2)

@@ -48,11 +48,16 @@ class UserService
             /* Checks if domain is valid */
             $api = app(ClientBaseApiController::class);
             $response = $api->verifyClientDomain($validated['domain']);
+           
             $clientBaseValues = $response['data']['values'];
 
             $clientGroupId = $clientBaseValues['clientGroupId'];
             $clientNetworkId = $clientBaseValues['clientNetworkId'];
             $domain = $clientBaseValues['domain'];
+
+            if (!$clientGroupId || !$clientNetworkId) {
+                return ServiceResponse::failure("Request failed", "Invalid client data received from domain verification.");
+            }
 
             /* Checks if user exist*/
             $existingUser = $this->userRepo->findExistingUser([
@@ -80,7 +85,7 @@ class UserService
             if ($this->userRepo->isUsernameUsed($validated['username'], $clientNetworkId)) {
                 return ServiceResponse::failure("Request failed", "This username is already in use within this client network.");
             }
-
+            
             $user = $this->userRepo->createUser([
                 'username' => $validated['username'],
                 'full_name' => $validated['fullname'],
@@ -122,23 +127,13 @@ class UserService
             }
 
             $user = $this->userRepo->findUserByToken($token);
+            
+            auth()->login($user);
+            
             if (!$user) {
                 return ServiceResponse::failure('Request failed.', 'Invalid or expired token.', 401);
             }
 
-            $isAdmin = $this->userRepo->checkAdminPermission($user->id);
-
-            auth()->login($user);
-            $request->session()->regenerate();
-            session()->put('userId', $user->id);
-            session()->put('isAdmin', $isAdmin);
-            session()->put('fullName', $user->full_name);
-            session()->put('clientGroupId', $user->client_group_id);
-            session()->put('clientNetworkId', $user->client_network_id);
-            session()->put('domain', $user->domain_name);
-            session()->put('software_id', $user->software_id);
-            session()->save();
-            
             return ServiceResponse::success('Login successful.', [
                 'redirect' => url('/dashboard'),
             ]);

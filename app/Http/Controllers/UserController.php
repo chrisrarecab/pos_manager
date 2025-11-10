@@ -82,6 +82,7 @@ class UserController extends Controller
             'domain'         => $user->domain_name,
             'softwareId'     => $user->software_id,
         ]);
+
         return redirect()->route('dashboard')
                          ->with('success', $response->message);
 
@@ -150,6 +151,20 @@ class UserController extends Controller
     public function bypassLoginCirms(Request $request)
     {
         $response = $this->userService->bypassLoginCirms($request);
+
+        $user = $request->user();
+        
+        $request->session()->regenerate();
+
+        session()->put([
+            'userId'         => $user->id,
+            'fullName'       => $user->full_name,
+            'username'       => $user->username,
+            'clientGroupId'  => $user->client_group_id,
+            'clientNetworkId'=> $user->client_network_id,
+            'domain'         => $user->domain_name,
+            'softwareId'     => $user->software_id,
+        ]);
 
         return response()->json([
             'isSuccessful' => $response->success,
