@@ -11,7 +11,7 @@ class ClientBaseService
         protected ClientBaseDetailsRepositoryInterface $clientBaseRepo
     ) {}
 
-    public function getClientTerminalDetails($clientGroupId, $softwareId): ServiceResponse
+    public function getClientTerminalDetails($clientGroupId, $clientNetworkId, $softwareId): ServiceResponse
     {
         try {
            
@@ -19,7 +19,7 @@ class ClientBaseService
                  return ServiceResponse::failure('Missing client group ID from session');
             }
             
-            $result = $this->clientBaseRepo->getTerminalDetails($clientGroupId, $softwareId);
+            $result = $this->clientBaseRepo->getTerminalDetails($clientGroupId, $clientNetworkId, $softwareId);
             return ServiceResponse::success('Client terminal details retrieved successfully', $result);
         } catch (\Throwable $e) {
             return ServiceResponse::failure('Unexpected error occurred', $e->getMessage());

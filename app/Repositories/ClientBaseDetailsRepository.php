@@ -61,7 +61,7 @@ class ClientBaseDetailsRepository implements ClientBaseDetailsRepositoryInterfac
             ->get();
     }
 
-    public function getTerminalDetails($clientGroupId, $softwareId)
+    public function getTerminalDetails($clientGroupId, $clientNetworkId, $softwareId)
     {
        $query = $this->connection->table('clientgroup as CG')
         ->select(
@@ -78,6 +78,7 @@ class ClientBaseDetailsRepository implements ClientBaseDetailsRepositoryInterfac
         ->leftJoin('clientdetails as CD', 'CD.clientid', '=', 'CH.id')
         ->leftJoin('clientterminaldetails as CTD', 'CTD.clientbranchid', '=', 'CD.id')
         ->where('CG.id', $clientGroupId)
+        ->where('CH.id', $clientNetworkId)
         ->where('CD.branchname', '!=', '')
         ->where('CTD.referenceno', '<>', 0)
         ->where('CTD.show', '<>', 0)

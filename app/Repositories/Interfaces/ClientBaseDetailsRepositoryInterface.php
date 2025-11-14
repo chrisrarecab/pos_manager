@@ -7,7 +7,7 @@ use App\Models\Setting;
 
 interface ClientBaseDetailsRepositoryInterface
 {
-    public function getTerminalDetails($clientGroupId, $softwareId);
+    public function getTerminalDetails($clientGroupId, $clientNetworkId, $softwareId);
     public function getClientTerminalIdByUuid(string $uuid): ?object;
 }
 

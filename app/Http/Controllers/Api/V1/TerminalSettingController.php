@@ -31,8 +31,9 @@ class TerminalSettingController extends Controller
     {
         $softwareId = session('softwareId');
         $clientGroupId = session('clientGroupId');
+        $clientNetworkId = session('clientNetworkId');
         
-        $response = $this->clientBaseService->getClientTerminalDetails($clientGroupId, $softwareId);
+        $response = $this->clientBaseService->getClientTerminalDetails($clientGroupId, $clientNetworkId, $softwareId);
 
         return Inertia::render('Settings/TerminalConfig', [
             'clientTerminalDetails' => $response->values,
