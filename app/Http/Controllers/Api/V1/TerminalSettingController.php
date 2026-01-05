@@ -29,16 +29,7 @@ class TerminalSettingController extends Controller
     
     public function setClientTerminalDetails() 
     {
-        $softwareId = session('softwareId');
-        $clientGroupId = session('clientGroupId');
-        $clientNetworkId = session('clientNetworkId');
-        
-        $response = $this->clientBaseService->getClientTerminalDetails($clientGroupId, $clientNetworkId, $softwareId);
-
-        return Inertia::render('Settings/TerminalConfig', [
-            'clientTerminalDetails' => $response->values,
-        ]);
-        
+        return Inertia::render('Settings/TerminalConfig');
     }
 
     public function storeTerminalSettings(StoreTerminalSettingRequest $request)
@@ -58,6 +49,12 @@ class TerminalSettingController extends Controller
     {
         $tabs = SettingTab::where('is_deleted', 0)->orderBy('order')->get();
         return response()->json($tabs);
+    }
+
+    public function fetchAllTerminalSettings() 
+    {
+        $res = TerminalSetting::where('is_deleted', 0)->select('terminal_id')->distinct()->get()->pluck('terminal_id');
+        return response()->json($res);
     }
 
     public function fetchTerminalSettings(Request $request) 
@@ -95,4 +92,13 @@ class TerminalSettingController extends Controller
         ],  $response->statusCode);
     }
 
+    public function searchTerminalSettings(Request $request)
+    {
+        $terminalId = $request->query('terminalId');
+        $softwareId = $request->query('softwareId');
+        $value = $request->query('value');
+        $settings = $this->terminalSettingService->searchTerminalSettings($terminalId, $softwareId, $value);
+
+        return response()->json($settings);
+    }
 }

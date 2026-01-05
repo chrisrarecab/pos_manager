@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+use App\Services\ClientBaseService;
+
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -54,6 +56,21 @@ class HandleInertiaRequests extends Middleware
                 ]
                 : null,
             ],
+            'clientTerminalDetails' => function () use ($request) {
+                if (! $request->user()) {
+                    return [];
+                }
+
+                $service = app(ClientBaseService::class);
+
+                $response = $service->getClientTerminalDetails(
+                    $request->user()->client_group_id,
+                    $request->user()->client_network_id,
+                    $request->user()->software_id
+                );
+
+                return $response->values ?? [];
+            },
         ]);
     }
 

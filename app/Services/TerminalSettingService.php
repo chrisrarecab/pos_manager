@@ -68,11 +68,9 @@ class TerminalSettingService
         );
     }
 
-    public function fetchTerminalSettings($terminalId, $softwareId)
+    private function processFetchedTerminalSettings($settings) 
     {
-        $settings = $this->terminalSettingRepo->getSettingsByTerminalId($terminalId, $softwareId);
-
-         return $settings->map(function ($setting) {
+        return $settings->map(function ($setting) {
             $ts = $setting->terminalSetting;
             $rawValue = $ts?->value;
             $resolvedValue = $rawValue;
@@ -116,6 +114,13 @@ class TerminalSettingService
                 'value'              => $resolvedValue,
             ];
         });
+    }
+    
+    public function fetchTerminalSettings($terminalId, $softwareId)
+    {
+        $settings = $this->terminalSettingRepo->getSettingsByTerminalId($terminalId, $softwareId);
+        return $this->processFetchedTerminalSettings($settings);
+       
     }
 
     public function storeTerminalSettings(array $data) : ServiceResponse
@@ -252,5 +257,9 @@ class TerminalSettingService
         }
     }
 
-    
+    public function searchTerminalSettings($terminalId, $softwareId, $value) 
+    {
+        $res = $this->terminalSettingRepo->searchTerminalSettings($terminalId, $softwareId, $value);
+        return $this->processFetchedTerminalSettings($res);
+    }
 }

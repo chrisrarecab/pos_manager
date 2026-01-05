@@ -31,7 +31,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, auth }: SidebarProps) => {
 
     return <>
         {/* Sidebar Overlay */}
-        {sidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
+        { sidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
 
         {/* Sidebar */}
         <div className={`bg-[#34495e] border-r border-gray-700 flex-shrink-0 overflow-y-auto fixed lg:static inset-y-0 left-0 z-20 transform transition-all duration-300 ease-in-out flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-64'}`}>
@@ -53,19 +53,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, auth }: SidebarProps) => {
                         </div>
                         <ChevronDownIcon className="h-4 w-4 text-gray-400" />
                     </button>
-                    {storeDropdownOpen && <div className="absolute left-0 right-0 mt-1 bg-[#2c3e50] border border-gray-700 rounded-md shadow-lg z-10">
-                        <div className="py-1">
-                            <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
-                                Save N Fresh Cartimart
-                            </button>
-                            <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
-                                Downtown Branch
-                            </button>
-                            <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
-                                Westside Mall
-                            </button>
+                    { storeDropdownOpen && 
+                        <div className="absolute left-0 right-0 mt-1 bg-[#2c3e50] border border-gray-700 rounded-md shadow-lg z-10">
+                            <div className="py-1">
+                                <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
+                                    Save N Fresh Cartimart
+                                </button>
+                                <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
+                                    Downtown Branch
+                                </button>
+                                <button className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[#34495e]">
+                                    Westside Mall
+                                </button>
+                            </div>
                         </div>
-                    </div>}
+                    }
                 </div>
             </div> : <div className="px-3 py-4 flex items-center justify-between border-b border-gray-700">
                 <div className="p-1.5 rounded-full">
@@ -74,10 +76,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, auth }: SidebarProps) => {
                 <button onClick={toggleCollapse} className="text-gray-300 hover:text-[#e74c3c] transition-colors">
                     <ChevronsRightIcon className="h-5 w-5" />
                 </button>
-            </div>}
+            </div>
+            }
 
             {/* Branches Section */}
-            {!sidebarCollapsed ? <div className="px-4 py-2 border-b border-gray-700">
+            {/* {!sidebarCollapsed ? <div className="px-4 py-2 border-b border-gray-700">
                 <h2 className="text-xs font-semibold text-gray-300 uppercase tracking-wider px-3 mb-2">
                     BRANCHES
                 </h2>
@@ -108,7 +111,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, auth }: SidebarProps) => {
                 <div className="rounded-md p-2 hover:bg-[#2c3e50] cursor-pointer transition-colors">
                     <StoreIcon className="h-5 w-5 text-gray-400" />
                 </div>
-            </div>}
+            </div>} */}
 
             {/* Navigation Links */}
             <div className="px-4 py-2 flex-grow">

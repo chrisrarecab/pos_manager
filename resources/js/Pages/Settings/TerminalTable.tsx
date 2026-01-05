@@ -42,7 +42,7 @@ const Table: React.FC<TableProps> = ({ data, className, maxColumns, onEdit }) =>
 					</td>
 					))}
 					<td className="px-4 py-3 whitespace-nowrap text-sm">
-					<button className="text-[var(--color-add-active)] hover:text-[var(--color-add-hover)] p-1" onClick={() => onEdit?.(row)}>
+					<button className="text-[var(--color-accent-active)] hover:text-[var(--color-add-hover)] p-1" onClick={() => onEdit?.(row)}>
 						<Tooltip content="Edit connection">
 						<EditIcon className="h-4 w-4" />
 						</Tooltip>
@@ -59,7 +59,7 @@ const Table: React.FC<TableProps> = ({ data, className, maxColumns, onEdit }) =>
 				<nav className="flex items-center"> 
 					<Tooltip content="First page">  <button className="px-2 py-1 mx-1 text-gray-500 hover:text-gray-700"> « </button>  </Tooltip>
 					<Tooltip content="Previous page"> <button className="px-2 py-1 mx-1 text-gray-500 hover:text-gray-700"> ‹ </button>  </Tooltip> 
-					<Tooltip content="Page 1"> <button className="px-3 py-1 mx-1 bg-[var(--color-add-active)] text-white rounded"> 1 </button> </Tooltip>
+					<Tooltip content="Page 1"> <button className="px-3 py-1 mx-1 bg-[var(--color-accent-active)] text-white rounded"> 1 </button> </Tooltip>
 					<Tooltip content="Next page"> <button className="px-2 py-1 mx-1 text-gray-500 hover:text-gray-700"> › </button> </Tooltip> 
 					<Tooltip content="Last page"> <button className="px-2 py-1 mx-1 text-gray-500 hover:text-gray-700"> » </button> </Tooltip> 
 				</nav>

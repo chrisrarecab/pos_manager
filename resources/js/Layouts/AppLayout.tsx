@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import Sidebar from '../Components/Sidebar'
 import Header from '../Components/Header'
 import { XIcon, MenuIcon } from 'lucide-react'
-import { usePage } from '@inertiajs/react'
+import { useTypedPage } from '@/Config/useTypePage';
 
 interface AppLayoutProps {
   children: ReactNode
@@ -11,7 +11,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   	const [sidebarOpen, setSidebarOpen] = useState(true)
-	const { auth }: any = usePage().props;
+	const { auth }: any =  useTypedPage().props;
 	return (
 		// Full viewport height
 		<div className="flex flex-col h-screen bg-gray-100">

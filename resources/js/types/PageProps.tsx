@@ -11,6 +11,7 @@ export type PageProps = {
 			permissions: number[];
 		} | null;
   	};
+	
 	clientTerminalDetails: {
 		terminalId: string | number;
 		clientGroupId: number;

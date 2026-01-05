@@ -13,5 +13,6 @@ interface TerminalSettingInterface
 	public function getMultiSelectOptionIds(array $values, int $settingId): array;
 	public function getSettingsByTerminalId(string $terminalId, $softwareId);
 	public function upsertSetting(array $row, $terminalId): void;
+	public function searchTerminalSettings(string $terminalId, $softwareId, $value); 
 }
 

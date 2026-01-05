@@ -1,8 +1,8 @@
-import React, {useEffect, useState } from 'react';
+import React, {useEffect, useState, useRef } from 'react';
 import { useTypedPage } from '@/Config/useTypePage';
 import type { TabType, SettingType } from '@/types/Settings/TerminalConfigType';
 import axios from '@/Config/axios';
-import {Table, UserRoundPen , TriangleAlert, Loader2 , SettingsIcon, Files, CopyCheck, Undo, Star, RefreshCw, SlidersVertical , SaveIcon, SearchIcon, TerminalIcon, AlertCircleIcon, InfoIcon, GlobeIcon, NetworkIcon, KeyIcon, UserCircleIcon, DatabaseIcon, CalendarIcon, HashIcon, StoreIcon, EditIcon, PlusIcon, XIcon, MenuIcon } from 'lucide-react';
+import {X, Table, UserRoundPen , TriangleAlert, Loader2 , SettingsIcon, Files, CopyCheck, Undo, Star, RefreshCw, SlidersVertical , SaveIcon, SearchIcon, TerminalIcon, AlertCircleIcon, InfoIcon, PlusIcon, XIcon } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { URL } from '@/Config/common'
 import TabNavigation from '@/Pages/Settings/TabNavigation';
@@ -12,6 +12,8 @@ import CopyModal from '@/Pages/Settings/CopyModal';
 import ApplyToAllModal from '@/Pages/Settings/ApplyToAllModal';
 import TerminalTableModal from '@/Pages/Settings/TerminalTableModal'; 
 import FlashMessage from '@/Components/FlashMessage';
+import { iconMap } from './TerminalConfigIcons';
+import { useDebounce } from 'use-debounce';
 
 const TerminalConfig = () => {
 	/**
@@ -84,8 +86,9 @@ const TerminalConfig = () => {
 	 */
 	const [loadingSettings, setLoadingSettings] = useState(false);
 	const [fetchedSettings, setFetchedSettings] = useState<SettingType[]| null>(null);
+	const softwareId = auth?.user?.softwareId;
+
 	useEffect(() => {
-		const softwareId = auth?.user?.softwareId;
 		if (!selectedTerminalId || !softwareId) return; 
 		setLoadingSettings(true);
 		setDisabledButton(true);
@@ -93,11 +96,66 @@ const TerminalConfig = () => {
 		axios.get(`${URL.TERMINAL_SETTINGS}/?terminalId=${selectedTerminalId}&softwareId=${softwareId}`)
 		.then(res => {
 			setFetchedSettings(res.data);
+			setOriginalData(res.data);
 			setLoadingSettings(false);
 		})
 		.catch(err => console.error("Failed to fetch settings:", err));
 	}, [selectedTerminalId, auth?.user?.softwareId]);
 
+	/**
+	 * Fetch All terminal with settings
+	 */
+	const [terminalIdsWithSettings, setTerminalIdsWithSettings] = useState<any[]>([]);
+
+	useEffect (() => {
+		if (isCopyModalOpen || isApplyToAllModalOpen) {
+			axios.get(`${URL.TERMINAL_SETTINGS}/list`).then(res =>  {
+				setTerminalIdsWithSettings(res.data)
+			});
+		}
+	}, [isCopyModalOpen, isApplyToAllModalOpen])
+	
+	/**
+	 * Search terminal settings
+	 */
+
+	const [searchValue, setSearchValue ] = useState<string>('');
+	const [originalData, setOriginalData ] = useState<SettingType[]| null>(null);
+	const [debounceSearch] = useDebounce(searchValue, 500);
+
+	const doSearch = async () => {
+		if (debounceSearch.trim() === '') {
+			setFetchedSettings(originalData);
+			return;
+		}
+
+		try {
+			const res = await axios.get(`${URL.TERMINAL_SETTINGS}/search/?terminalId=${selectedTerminalId}&softwareId=${softwareId}&value=${debounceSearch}`)
+			setFetchedSettings(res.data);
+		}
+		catch(err) {
+			console.log(err);
+		}
+	}
+	
+	const handleClearSearch = () => {
+		setSearchValue('');
+		refreshTerminalTable();
+	}
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            doSearch();
+        }
+    };
+
+	useEffect(() => {
+		doSearch();
+	}, [debounceSearch]);
+		
+	/**
+	 * Save only modified terminal settings
+	 */
 	const [modifiedSettings, setModifiedSettings] = useState<Record<string, any>>({});
 	useEffect(() => {
 		if (!fetchedSettings) return;
@@ -159,6 +217,7 @@ const TerminalConfig = () => {
 		} 
 		finally {
 			setLoadingSettings(false);
+			setSearchValue('');
 		}
 	};
 
@@ -210,6 +269,7 @@ const TerminalConfig = () => {
 	};
 
 	/**
+	 * 
 	 * Handle modal data
 	 */
 	const [sourceTerminalSettings, setSourceTerminalSettings] = useState<SettingType[]>([]);
@@ -227,7 +287,7 @@ const TerminalConfig = () => {
 			.catch(err => console.error("Failed to fetch source terminal settings:", err));
 		}
 	};
-
+	
 	/**
 	 * Save settings
 	 */
@@ -337,21 +397,13 @@ const TerminalConfig = () => {
 						.map(item => Number(item.terminalId));
 				} 
 				else if (selectedOption === "Branch") {
-					if (!selectedTargetBranch) {
-						alert("Please select a target branch.");
-						setFlashMessage({ message: 'Please select a target branch.', type: 'error' });
-						setLoading(false);
-						return;
-					}
-
 					targetTerminalIds = clientTerminalDetails
-					.filter(item => Number(item.branchId) === Number(selectedTargetBranch))
-					.map(item => Number(item.terminalId)); 
+						.filter(item => Number(item.branchId) === Number(selectedTargetBranch))
+						.map(item => Number(item.terminalId)); 
 				} 
 				else {
 					setFlashMessage({ message: 'Please select a valid option (Network or Branch).', type: 'error' });
 					setLoading(false);
-					
 					return;
 				}
 
@@ -534,10 +586,25 @@ const TerminalConfig = () => {
 										</div>
 									</div>
 									 <div className="relative w-full sm:w-1/2">
-										<input type="text" placeholder="Search configurations..." className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5a6a7f] focus:border-[#5a6a7f] transition-colors pl-10" />
+									 
 										<div className="absolute left-0 top-0 h-full px-3 flex items-center">
 											<SearchIcon className="h-5 w-5 text-gray-400" />
 										</div>
+										<input type="text" placeholder="Search configurations..." className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5a6a7f] focus:border-[#5a6a7f] transition-colors pl-10" 
+											value={searchValue}
+											onChange={(e)=> setSearchValue(e.target.value)}
+											onKeyDown={handleKeyDown}
+										/>
+									  {searchValue && (
+											<button
+											type="button"
+											onClick={() => handleClearSearch()}
+											className="absolute inset-y-0 right-0 flex items-center pr-3"
+											>
+											<XIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+											</button>
+										)}
+																				
 									</div>
 								</div>
 							</div>
@@ -546,7 +613,7 @@ const TerminalConfig = () => {
 								 tabs={showTabs?.map(tab => ({
 									id: String(tab.id),
 									label: tab.name,
-									icon: <SettingsIcon /> 
+									icon: iconMap[tab.name] ?? <SettingsIcon />
 								})) ?? []}
 							 />
 							{/* Tab Content */}
@@ -590,7 +657,7 @@ const TerminalConfig = () => {
 															<div className="mb-6">
 																<div className="flex justify-between items-center mb-4">
 																	<h2 className="text-lg font-medium text-gray-700"> </h2>
-																	<button className="bg-[var(--color-add-active)] hover:bg-[var(--color-add-hover)] text-white px-3 py-1.5 rounded text-sm flex items-center">
+																	<button className="bg-[var(--color-accent-active)] hover:bg-[var(--color-add-hover)] text-white px-3 py-1.5 rounded text-sm flex items-center">
 																		<PlusIcon className="h-4 w-4 mr-1" />
 																		Add Connection
 																	</button>
@@ -707,6 +774,7 @@ const TerminalConfig = () => {
 			onClose={() => setIsCopyModalOpen(false)}
 			title="Copy to..."
 			Icon={Files}
+			listOfSourceTerminal={terminalIdsWithSettings}
 			data={clientTerminalDetails}
         	onTerminalsChange={handleTerminalsChange}
 			sourceTerminalSettings={sourceTerminalSettings} 
@@ -721,6 +789,7 @@ const TerminalConfig = () => {
 			onClose={() => setIsApplyToAllModalOpen(false)}
 			title="Apply-to-All"
 			Icon={CopyCheck}
+			listOfSourceTerminal={terminalIdsWithSettings}
 			data={clientTerminalDetails}
         	onTerminalsChange={handleTerminalsChange}
 			sourceTerminalSettings={sourceTerminalSettings} 

@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Setting;
 use App\Models\SettingOption;
@@ -37,6 +38,7 @@ class TerminalSettingRepository implements TerminalSettingInterface
 
     public function getSettingsByTerminalId(string $terminalId, $softwareId)
     {
+        // DB::enableQueryLog();
         return Setting::where('software_id', $softwareId)
             ->where('is_deleted', 0)
             ->whereHas('terminalSetting', function ($q) use ($terminalId) {
@@ -64,6 +66,27 @@ class TerminalSettingRepository implements TerminalSettingInterface
                 'last_modified_date' => Carbon::now()->toDateTimeString(),
             ]
         );
+    }
+
+    public function searchTerminalSettings(string $terminalId, $softwareId, $value)
+    {
+        return Setting::where('software_id', $softwareId)
+            ->where('is_deleted', 0)
+            ->whereHas('terminalSetting', function ($q) use ($terminalId) {
+                $q->where('terminal_id', $terminalId);
+            })
+            ->whereAny([
+                'name',
+                'tip',
+                'description'
+            ], 'like', '%'. $value .'%')
+            ->with([
+                'options:id,setting_id,name,value',
+                'issues:terminal_id,setting_id,issue_id',
+                'user:id,full_name',
+                'terminalSetting' => fn($q) => $q->where('terminal_id', $terminalId)
+            ])
+            ->get();
     }
 }
  

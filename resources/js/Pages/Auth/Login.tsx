@@ -1,9 +1,12 @@
 import React, { useState, type FormEvent, useEffect  } from 'react';
-import {useForm} from "@inertiajs/react"
+import {useForm, router} from "@inertiajs/react"
 import { UserIcon, KeyIcon, Link } from 'lucide-react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import { useTypedPage } from '@/Config/useTypePage'
 
-const LoginPage = () => {
-	const [activeTab, setActiveTab] = useState('core')
+const Login = () => {
+	const { auth } = useTypedPage().props;
+	const [activeTab, setActiveTab] = useState('core');
 
 	const { data, setData, post, errors, clearErrors, processing, reset } = useForm({
 		softwareId: '',
@@ -24,13 +27,8 @@ const LoginPage = () => {
    		reset('username', 'password');
 	}, [activeTab]);
 	
-
-return <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-	<div className="w-full max-w-md">
-		<div className="text-center mb-6">
-			<h1 className="text-2xl font-bold text-[#5a6a7f]">CIRMS POS</h1>
-			<p className="text-gray-600">Enterprise Management System</p>
-		</div>
+	return ( 
+	<AuthLayout>
 		<div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
 			{/* Tabs */}
 			<div className="flex">
@@ -112,17 +110,18 @@ return <div className="min-h-screen flex items-center justify-center bg-gray-100
 						</button>
 					</div>
 					<div className="mt-4 text-center text-sm text-gray-500">
-						<a href="#" className="text-[#5a6a7f] hover:text-[#e74c3c] hover:underline transition-colors">
-							Forgot password?
+						Don't have an account?{' '}
+						<a href="#" className="text-[var(--color-primary)] hover:text-[var(--color-accent-hover)] hover:underline transition-colors">
+							Sign up
 						</a>
 					</div>
 				</form>
 			</div>
 		</div>
 		<div className="mt-6 text-center text-sm text-gray-500">
-			<p>© 2025 CIRMS POS Enterprise. All rights reserved.</p>
+			<p>© 2025 POS Manager Enterprise. All rights reserved.</p>
 		</div>
-	</div>
-	</div>;
+	</AuthLayout>
+	)
 };
-export default LoginPage;
+export default Login;

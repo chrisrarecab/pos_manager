@@ -115,7 +115,7 @@ const MultiStepForm = forwardRef<MultiStepFormRef, MultiStepFormProps>(
 										? "var(--color-accent-active)"  // Current step 
 										: step > index + 1
 										? "#fff" // Completed steps
-										: "var(--color-primary-light)", // Future steps
+										: "var(--color-primary-bg)", // Future steps
 
 									// Set the border color based on the step status
 									borderColor:
@@ -123,7 +123,7 @@ const MultiStepForm = forwardRef<MultiStepFormRef, MultiStepFormProps>(
 										? "var(--color-accent-active)" // Current step
 										: step > index + 1
 										? "var(--color-accent-active)"  // Completed steps 
-										: "var(--color-primary-light)", // Future steps
+										: "var(--color-primary-bg)", // Future steps
 									}}
 							>
 								{index + 1}

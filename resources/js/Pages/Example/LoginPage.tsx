@@ -25,7 +25,7 @@ export default function LoginPage() {
 	return (
 		<div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-50">
 			<div className="text-center mb-6">
-			<h1 className="text-2xl font-bold text-amber-600">CIRMS POS</h1>
+			<h1 className="text-2xl font-bold text-amber-600">POS Manager</h1>
 			<p className="text-gray-600">Enterprise Management System</p>
 			</div>
 			<div className="bg-white rounded-md shadow-md w-full max-w-md overflow-hidden">
@@ -136,7 +136,7 @@ export default function LoginPage() {
 			</div>
 			{/* Footer */}
 			<div className="mt-6 text-center text-xs text-gray-500">
-			© 2025 CIRMS POS Enterprise. All rights reserved.
+			© 2025 POS Manager Enterprise. All rights reserved.
 			</div>
 		</div>
 	)

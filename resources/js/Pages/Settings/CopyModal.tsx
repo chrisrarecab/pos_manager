@@ -12,6 +12,7 @@ interface CopyModalProps extends ModalProps {
 	showTabs?: TabType[] | null;
 	onSave: (action: string, data?: any) => void;
 	loading?: boolean;
+	listOfSourceTerminal: any[]; 
 }
 
 const CopyModal: React.FC<CopyModalProps> = ({
@@ -26,6 +27,7 @@ const CopyModal: React.FC<CopyModalProps> = ({
 	showTabs = null,
 	onSave,
 	loading = false, 
+	listOfSourceTerminal = []
 }) => {
 
 	const multiStepRef = useRef<MultiStepFormRef>(null);
@@ -42,6 +44,9 @@ const CopyModal: React.FC<CopyModalProps> = ({
 
 	const sourceTerminal = data?.find(t => t.terminalId === sourceTerminalId);
 	const targetTerminal = data?.find(t => t.terminalId === targetTerminalId);
+
+	const terminalsWithSettings = data.filter(t => listOfSourceTerminal.includes(t.terminalId));
+
 	const [expandedTab, setExpandedTab] = useState<string | null>(null);
 
 	const groupedSettings = sourceTerminalSettings.reduce(
@@ -155,15 +160,15 @@ const CopyModal: React.FC<CopyModalProps> = ({
 			>
 			{/* Step 1: Select Terminals */}
 			<div className="step1 ">
-				<label className="block font-medium mb-1">Copy settings to:</label>
+				<label className="block font-medium mb-1">Copy Settings From:</label>
 				<div className="relative">
 					<select
 						className="block w-full h-9 px-2 py-1 border border-gray-300 rounded-md appearance-none pr-8"
 						value={sourceTerminalId}
 						onChange={e => setSourceTerminalId(Number(e.target.value))}
 					>
-						<option value="">Select source terminal</option>
-						{data.map((terminal: any) => (
+						<option>Select source terminal</option>
+						{terminalsWithSettings.map((terminal: any) => (
 							<option key={terminal.terminalId} value={terminal.terminalId}>
 								{`Branch ${terminal.branchId}: ${terminal.branchName} - Terminal# ${terminal.terminalNo}`}
 							</option>
@@ -181,16 +186,15 @@ const CopyModal: React.FC<CopyModalProps> = ({
 					</div>
 				</div>
 
-    			<label className="block font-medium mt-2 mb-1">Copy settings to:</label>
+    			<label className="block font-medium mt-2 mb-1">Copy Settings To:</label>
 				<div className="relative">
 					<select
 					className="block w-full h-9 px-2 py-1 border border-gray-300 rounded-md appearance-none pr-8"
 					value={targetTerminalId}
 					onChange={e => setTargetTerminalId(Number(e.target.value))}
 					>
-					<option value="">Select target terminal</option>
-					{data
-						.filter((t: any) => t.terminalId !== sourceTerminalId)
+					<option>Select target terminal</option>
+					{data.filter((t: any) => t.terminalId !== sourceTerminalId)
 						.map((terminal: any) => (
 						<option key={terminal.terminalId} value={terminal.terminalId}>
 							{`Branch ${terminal.branchId}: ${terminal.branchName} - Terminal# ${terminal.terminalNo}`}

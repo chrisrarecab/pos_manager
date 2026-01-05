@@ -15,7 +15,7 @@ const Header = ({ auth }:HeaderProps) => {
 	return( <div className="w-full h-14 bg-[#5a6a7f] shadow-md flex items-center px-4">
 		<div className="container mx-auto flex justify-between items-center">
 			<div className="flex items-center">
-				<h1 className="text-xl font-bold text-white">CIRMS POS</h1>
+				<h1 className="text-xl font-bold text-white">POS Manager</h1>
 				<span className="ml-2 text-xs bg-white/20 text-white px-2 py-0.5 rounded">
 					Enterprise
 				</span>

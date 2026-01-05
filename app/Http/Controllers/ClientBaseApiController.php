@@ -12,7 +12,7 @@ class ClientBaseApiController extends Controller
     private $hostname = "client-api.nelsoft.ph";
     protected $clientbase;
     
-    public function __construct(ClientBaseDetailsRepository $details) {
+    public function __construct(ClientBaseDetailsRepository $details = null) {
         $configValue = env('CLIENTBASE_API_PORT');
         $configValue = (strlen($configValue) > 0) ? $configValue : $this->hostname;
         $this->hostname = $configValue;

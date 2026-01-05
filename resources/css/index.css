@@ -16,8 +16,6 @@
   --color-primary-active: #2a3645;
   --color-primary-bg: #e5e7eb;
 
-  --color-accent-active: #e74c3c;
-  --color-accent-hover: #c0392b;
   /* -------------------- Header -------------------- */
   --color-header-hover: #4c5a6d;
   --color-header-active: #3e4a5b;
@@ -29,10 +27,9 @@
   --color-sidebar-light: #4f6275;
 
   /* -------------------- Accent & Add -------------------- */
-
-  --color-add-hover: #b83226;
-  --color-add-active: #cf3d2f;
-  --color-add-light: #f29d96;
+  --color-accent-active: #cf3d2f;
+  --color-accent-hover: #b83226;
+  --color-accent-light: #f29d96;
 
   /* -------------------- Info -------------------- */
   --color-info-hover: #165d7a;

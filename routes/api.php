@@ -52,10 +52,12 @@ Route::prefix('v1')->group(function () {
     // Terminal Settings
     Route::prefix('terminal/settings')->controller(TerminalSettingController::class)->group(function () {
         Route::get('/tabs', 'fetchTerminalSettingsTabs');
+        Route::get('/list', 'fetchAllTerminalSettings');
         Route::get('/', 'fetchTerminalSettings');
         Route::post('/', 'storeTerminalSettings');
         Route::post('/update', 'updateTerminalSettings');
         Route::post('/apply-to-all', 'applySettingsToMultipleTerminals');
+        Route::get('/search', 'searchTerminalSettings');
     });
 });
 
@@ -68,7 +70,6 @@ Route::controller(ClientBaseApiController::class)->group(function () {
 });
 
 Route::controller(UserController::class)->group(function () {
-    Route::post('/register', 'registerBySecretKey');
     Route::get('/checkUserSession', 'checkAuth');
     Route::get('/getSession', 'getSession');
     Route::post('/register/cirms', 'bypassRegisterCirms');

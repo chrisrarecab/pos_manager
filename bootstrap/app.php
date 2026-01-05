@@ -48,15 +48,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // $exceptions->respond(function (Response $response) {
-        //     // Intercept the 419 status code, which indicates a CSRF mismatch.
-        //     if ($response->getStatusCode() === 419) {
-        //         // Return an Inertia redirect to the login page.
-        //         // This forces a full page reload, getting a new session and token.
-        //         return to_route('login');
-        //     }
-
-        //     // For all other exceptions, return the default response.
-        //     return $response;
-        // });
-    })->create();
+        //
+    })
+    ->create();
